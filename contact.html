@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Dominic Pro Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- TOP HAZARD STRIPE -->
+  <div class="hazard-stripe"></div>
+
+  <!-- ==================== NAVBAR ==================== -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon">D</div>
+        <div class="logo-text">
+          <span class="logo-brand">DOMINIC</span>
+          <span class="logo-sub">PRO TOOLS</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="products.html">PRODUCTS</a></li>
+        <li><a href="about.html">ABOUT</a></li>
+        <li><a href="contact.html" class="nav-active">CONTACT</a></li>
+        <li><a href="track-order.html">TRACK ORDER</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="tel:+2348135482358" class="nav-phone">
+          <i class="fa-solid fa-phone"></i>
+          <span>+234 813 548 2358</span>
+        </a>
+        <a href="#" class="nav-cart" id="cartBtn">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== CONTACT HERO ==================== -->
+  <section class="about-hero">
+    <div class="container">
+      <p class="about-label">GET IN TOUCH</p>
+      <h1 class="about-title">Talk to the team</h1>
+      <p class="about-desc">
+        Questions on stock, bulk orders or delivery? Reach out &mdash; we answer fast.
+      </p>
+    </div>
+    <div class="hazard-stripe"></div>
+  </section>
+
+  <!-- ==================== CONTACT MAIN ==================== -->
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-layout">
+
+        <!-- Left: Info cards + WhatsApp -->
+        <div class="contact-cards">
+
+          <div class="contact-card">
+            <div class="contact-card-icon">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <div class="contact-card-body">
+              <p class="contact-card-title">IBADAN BRANCH</p>
+              <p class="contact-card-detail">Ibadan, Oyo State, Nigeria</p>
+              <p class="contact-card-sub">+234 813 548 2358</p>
+            </div>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-card-icon">
+              <i class="fa-solid fa-phone"></i>
+            </div>
+            <div class="contact-card-body">
+              <p class="contact-card-title">MAIN OFFICE</p>
+              <p class="contact-card-detail">+234 901 480 8044</p>
+              <p class="contact-card-sub">Mon-Sat, 8am&ndash;6pm</p>
+            </div>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-card-icon">
+              <i class="fa-solid fa-envelope"></i>
+            </div>
+            <div class="contact-card-body">
+              <p class="contact-card-title">EMAIL SUPPORT</p>
+              <p class="contact-card-detail">support@dominicprotools.com</p>
+              <p class="contact-card-sub">Replies within 24 hrs</p>
+            </div>
+          </div>
+
+          <a href="https://wa.me/2348135482358" class="btn-whatsapp" target="_blank" rel="noopener">
+            <i class="fa-regular fa-comment-dots"></i>
+            CHAT ON WHATSAPP
+          </a>
+
+        </div>
+
+        <!-- Right: Enquiry form -->
+        <div class="contact-form-card">
+          <p class="form-heading">SEND AN ENQUIRY</p>
+
+          <form id="contactForm" action="https://formspree.io/f/mjgqlebk" method="POST" novalidate>
+
+            <div class="form-group">
+              <label class="form-label" for="fullName">FULL NAME</label>
+              <input type="text" id="fullName" class="form-input" placeholder="Your name" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="email">EMAIL</label>
+              <input type="email" id="email" class="form-input" placeholder="you@email.com" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="message">MESSAGE</label>
+              <textarea id="message" class="form-textarea" placeholder="What do you need?" required></textarea>
+            </div>
+
+            <button type="submit" class="btn-send">
+              SEND MESSAGE <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <p class="form-success" id="formSuccess" style="display:none">
+              <i class="fa-solid fa-circle-check"></i>
+              Message sent! We&rsquo;ll be in touch shortly.
+            </p>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="hazard-stripe footer-hazard"></div>
+    <div class="container">
+      <div class="footer-grid">
+
+        <!-- Col 1: Brand -->
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo footer-logo">
+            <div class="logo-icon">D</div>
+            <div class="logo-text">
+              <span class="logo-brand">DOMINIC</span>
+              <span class="logo-sub">PRO TOOLS</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Built To Perform. Made To Last.</p>
+          <p class="footer-desc">Professional-grade tools for technicians, engineers, mechanics and electricians across Nigeria.</p>
+        </div>
+
+        <!-- Col 2: Categories -->
+        <div class="footer-col">
+          <h4>CATEGORIES</h4>
+          <ul>
+            <li><a href="products.html">Power Tools</a></li>
+            <li><a href="products.html">Mechanic Tool Kits</a></li>
+            <li><a href="products.html">Engineering Equipment</a></li>
+            <li><a href="products.html">Hand Tools</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Equipment -->
+        <div class="footer-col">
+          <h4>EQUIPMENT</h4>
+          <ul>
+            <li><a href="products.html">All Products</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="https://wa.me/2348135482358" target="_blank" rel="noopener">WhatsApp Orders</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact -->
+        <div class="footer-col footer-contact-col">
+          <h4>CONTACT</h4>
+          <div class="contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>Ibadan, Oyo State, Nigeria</span>
+          </div>
+          <div class="contact-item">
+            <i class="fa-solid fa-phone"></i>
+            <div>
+              <span class="contact-label">Ibadan Branch:</span>
+              <a href="tel:+2348135482358">+234 813 548 2358</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <i class="fa-solid fa-phone"></i>
+            <div>
+              <span class="contact-label">Main Office:</span>
+              <a href="tel:+2349014808044">+234 901 480 8044</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <span>&copy; 2026 Dominic Pro Tools. All rights reserved.</span>
+        <span class="paystack-badge">
+          <i class="fa-solid fa-shield-halved"></i>
+          Secured payments by Paystack
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+  <script src="js/products-data.js"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script src="js/cart.js"></script>
+  <script>
+    /* Formspree: on success Formspree redirects, but we also handle the
+       AJAX path for a smoother UX (works when Formspree returns 200). */
+    document.getElementById('contactForm').addEventListener('submit', async function (e) {
+      const form = this;
+      // Only intercept if the action points to Formspree (not a placeholder)
+      if (!form.action.includes('formspree.io') || form.action.includes('YOUR_FORM_ID')) {
+        e.preventDefault();
+        const name    = document.getElementById('fullName').value.trim();
+        const email   = document.getElementById('email').value.trim();
+        const message = document.getElementById('message').value.trim();
+        if (!name || !email || !message) return;
+        form.querySelectorAll('.form-input, .form-textarea, .btn-send').forEach(el => el.disabled = true);
+        document.getElementById('formSuccess').style.display = 'flex';
+        return;
+      }
+      e.preventDefault();
+      const data = new FormData(form);
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST', body: data,
+          headers: { Accept: 'application/json' }
+        });
+        if (res.ok) {
+          form.querySelectorAll('.form-input, .form-textarea, .btn-send').forEach(el => el.disabled = true);
+          document.getElementById('formSuccess').style.display = 'flex';
+          form.reset();
+        } else {
+          alert('Something went wrong. Please try WhatsApp or call us directly.');
+        }
+      } catch {
+        alert('Network error. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>
