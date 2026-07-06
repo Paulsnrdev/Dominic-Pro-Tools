@@ -950,7 +950,15 @@ body {
   .hpc-features { display: none; }
 
   /* Footer */
-  .footer-grid { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 0 2rem; }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 1.5rem;
+    padding: 2.5rem 0 2rem;
+  }
+  .footer-brand      { grid-column: 1 / -1; order: 0; }
+  .footer-grid > *:nth-child(3) { order: 1; }  /* Quick Links — first column */
+  .footer-grid > *:nth-child(2) { order: 2; }  /* Categories — second column */
+  .footer-contact-col { grid-column: 1 / -1; order: 3; }
   .footer-bottom-inner { flex-direction: column; text-align: center; }
 
   /* Quality banner */
