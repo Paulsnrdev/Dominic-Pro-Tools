@@ -12,10 +12,11 @@
   <style>
     /* ── Track-Order page styles ─────────────────────────── */
     .track-hero {
-      background: var(--dark);
-      color: var(--white);
+      background: var(--white);
+      color: var(--dark);
       padding: 4rem 0 0;
       text-align: center;
+      border-bottom: 4px solid var(--yellow);
     }
     .track-label {
       display: inline-flex;
@@ -32,9 +33,10 @@
       font-weight: 900;
       letter-spacing: -.02em;
       margin-bottom: .75rem;
+      color: var(--dark);
     }
     .track-sub {
-      color: #9ca3af;
+      color: var(--gray);
       font-size: 1.05rem;
       margin-bottom: 2.5rem;
     }
@@ -59,12 +61,12 @@
       font-size: .95rem;
       font-weight: 600;
       letter-spacing: .04em;
-      background: #1e2232;
-      color: var(--white);
+      background: var(--white);
+      color: var(--dark);
       border: none;
       outline: none;
     }
-    .track-search-box input::placeholder { color: #6b7280; }
+    .track-search-box input::placeholder { color: #9ca3af; }
     #trackBtn {
       padding: .9rem 1.5rem;
       background: var(--yellow);
@@ -337,8 +339,6 @@
 </head>
 <body>
 
-  <div class="hazard-stripe"></div>
-
   <!-- ==================== NAVBAR ==================== -->
   <nav class="navbar" id="navbar">
     <div class="container nav-container">
@@ -388,7 +388,6 @@
         <button id="trackBtn"><i class="fa-solid fa-magnifying-glass"></i> TRACK</button>
       </div>
     </div>
-    <div class="hazard-stripe catalog-bottom-stripe"></div>
   </section>
 
   <!-- ==================== RESULT SECTION ==================== -->
@@ -512,7 +511,6 @@
 
   <!-- ==================== FOOTER ==================== -->
   <footer class="footer">
-    <div class="hazard-stripe footer-hazard"></div>
     <div class="container">
       <div class="footer-grid">
 
@@ -525,7 +523,7 @@
             </div>
           </a>
           <p class="footer-tagline">Built To Perform. Made To Last.</p>
-          <p class="footer-desc">Professional-grade tools for technicians, engineers, mechanics and electricians across Nigeria.</p>
+          <p class="footer-desc">Professional grade tools for technicians, engineers, mechanics and electricians across Nigeria.</p>
         </div>
 
         <div class="footer-col">
@@ -553,20 +551,20 @@
           <h4>CONTACT</h4>
           <div class="contact-item">
             <i class="fa-solid fa-location-dot"></i>
-            <span>Ibadan, Oyo State, Nigeria</span>
+            <span>No 15B Onile Investment, Ifeleye, Oke parde, Dugbe, Ibadan.</span>
           </div>
           <div class="contact-item">
             <i class="fa-solid fa-phone"></i>
             <div>
               <span class="contact-label">Ibadan Branch:</span>
-              <a href="tel:+2348135482358">+234 813 548 2358</a>
+              <a href="tel:+2348135482358">+234 901 480 8044</a>
             </div>
           </div>
           <div class="contact-item">
             <i class="fa-solid fa-phone"></i>
             <div>
               <span class="contact-label">Main Office:</span>
-              <a href="tel:+2349014808044">+234 901 480 8044</a>
+              <a href="tel:+2349014808044">+234 813 548 2358</a>
             </div>
           </div>
         </div>
