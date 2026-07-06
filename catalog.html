@@ -61,10 +61,10 @@
     }
     .cat-logo { display:flex; align-items:center; gap:.6rem; }
     .cat-logo-icon {
-      width:30px; height:30px; background:var(--y); color:var(--d);
-      font-size:.9rem; font-weight:900; display:flex; align-items:center;
-      justify-content:center; border-radius:50%;
+      width:36px; height:36px; border-radius:50%; overflow:hidden;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
+    .cat-logo-icon img { width:100%; height:100%; object-fit:cover; display:block; }
     .cat-logo-text { font-size:.9rem; font-weight:900; letter-spacing:.14em; color:var(--y); }
     .header-right { display:flex; align-items:center; gap:.6rem; }
     .btn-hdr {
@@ -315,7 +315,7 @@
   <!-- Header -->
   <header class="cat-header">
     <div class="cat-logo">
-      <div class="cat-logo-icon">D</div>
+      <div class="cat-logo-icon"><img src="Header Logo.jpeg" alt="Dominic Pro Tools" /></div>
       <span class="cat-logo-text">CATALOG</span>
     </div>
     <div class="header-right">
@@ -557,10 +557,13 @@
      BASE CATEGORIES
   ══════════════════════════════════════════════════════════ */
   const BASE_CATS = [
-    { id: 'power',       name: 'Power Tools',          description: 'High-performance power tools for professionals' },
-    { id: 'mechanic',    name: 'Mechanic Tool Kits',    description: 'Complete mechanic tool sets and accessories'    },
-    { id: 'engineering', name: 'Engineering Equipment', description: 'Professional engineering and surveying tools'   },
-    { id: 'hand',        name: 'Hand Tools',            description: 'Essential hand tools for every trade'           }
+    { id: 'power',       name: 'Power Tools',              description: 'High-performance power tools for professionals'                       },
+    { id: 'electrical',  name: 'Electrical Engineer Tools', description: 'Pliers, wire strippers, screwdrivers, toolkits & more — 19 items'   },
+    { id: 'engineering', name: 'Engineering Tools',         description: 'Screwdrivers, pliers, toolkits and precision tools — 19 items'       },
+    { id: 'mechanical',  name: 'Mechanical Engineer Tools', description: 'Professional 160-piece mechanic toolkit'                             },
+    { id: 'hand',        name: 'Hand Tools',                description: 'Screwdriver sets, pliers, wire strippers & hand tools — 13 items'   },
+    { id: 'pro-sets',    name: 'Professional Tool Sets',    description: 'Complete toolboxes by TOTAL, INGCO, DEWALT & more — 6 items'        },
+    { id: 'accessories', name: 'Accessories',               description: 'Power tool accessories, holesaws and add-ons'                       },
   ];
 
   /* ══════════════════════════════════════════════════════════
