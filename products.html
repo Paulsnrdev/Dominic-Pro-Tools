@@ -201,7 +201,7 @@
           <div class="product-img-wrapper">
             ${p.discount > 0 ? `<span class="discount-badge">-${p.discount}%</span>` : ''}
             <span class="brand-tag${brandClass}">${brandUp || 'GENERIC'}</span>
-            <img src="${p.image}" alt="${p.name}"
+            <img src="${encodeURI(p.image)}" alt="${p.name}"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
             <div class="product-img-placeholder" style="display:none">
               <i class="fa-solid fa-screwdriver-wrench"></i>
