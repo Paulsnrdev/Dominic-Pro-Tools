@@ -1,0 +1,710 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="Header Logo.jpeg" />
+  <title>Track Your Order — Dominic Pro Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Track-Order page styles ─────────────────────────── */
+    .track-hero {
+      background: var(--white);
+      color: var(--dark);
+      padding: 4rem 0 0;
+      text-align: center;
+      border-bottom: 4px solid var(--yellow);
+    }
+    .track-label {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--yellow);
+      margin-bottom: 1rem;
+    }
+    .track-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: -.02em;
+      margin-bottom: .75rem;
+      color: var(--dark);
+    }
+    .track-sub {
+      color: var(--gray);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+    }
+    .track-search-wrap {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 3rem;
+    }
+    .track-search-box {
+      display: flex;
+      gap: 0;
+      width: 100%;
+      max-width: 540px;
+      border: 2px solid var(--yellow);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .track-search-box input {
+      flex: 1;
+      padding: .9rem 1.2rem;
+      font-family: var(--font);
+      font-size: .95rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      background: var(--white);
+      color: var(--dark);
+      border: none;
+      outline: none;
+    }
+    .track-search-box input::placeholder { color: #9ca3af; }
+    #trackBtn {
+      padding: .9rem 1.5rem;
+      background: var(--yellow);
+      color: var(--dark);
+      font-family: var(--font);
+      font-size: .85rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .2s;
+    }
+    #trackBtn:hover { background: #e5941a; }
+
+    /* ── Result section ───────────────────────────────────── */
+    .track-result-section { padding: 3rem 0 4rem; background: var(--light); }
+
+    .track-status-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--yellow);
+      padding: 1.75rem 2rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+    }
+    .track-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .track-id-block strong {
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: var(--dark);
+    }
+    .track-lbl {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--gray);
+      margin-bottom: .2rem;
+    }
+    .track-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+    .track-meta-item span {
+      display: block;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    /* Badges */
+    .tr-badge {
+      display: inline-block;
+      padding: .35rem .9rem;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .tr-badge-warning  { background: #fef3c7; color: #92400e; }
+    .tr-badge-success  { background: #d1fae5; color: #065f46; }
+    .tr-badge-info     { background: #dbeafe; color: #1e40af; }
+    .tr-badge-primary  { background: #ede9fe; color: #5b21b6; }
+    .tr-badge-dark     { background: #e5e7eb; color: #374151; }
+
+    /* ── Timeline ─────────────────────────────────────────── */
+    .track-timeline-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .track-timeline-hd {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--gray);
+      margin-bottom: 1.75rem;
+    }
+    .track-timeline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      position: relative;
+    }
+    .track-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .6rem;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .step-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid #d1d5db;
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #9ca3af;
+      transition: all .3s;
+    }
+    .step-lbl {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #9ca3af;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .track-connector {
+      flex: 1;
+      height: 3px;
+      background: #e5e7eb;
+      margin-top: 24px;
+      transition: background .3s;
+      max-width: 80px;
+    }
+
+    /* Active/done states */
+    .track-step.done .step-icon {
+      border-color: var(--yellow);
+      background: var(--yellow);
+      color: var(--dark);
+    }
+    .track-step.done .step-lbl { color: var(--dark); }
+    .track-step.active .step-icon {
+      border-color: var(--yellow);
+      background: var(--dark);
+      color: var(--yellow);
+      box-shadow: 0 0 0 5px rgba(245,166,35,.15);
+    }
+    .track-step.active .step-lbl { color: var(--dark); font-weight: 800; }
+    .track-connector.filled { background: var(--yellow); }
+
+    /* ── Pay note ─────────────────────────────────────────── */
+    .track-pay-note {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      font-size: .9rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .track-pay-note-warn {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+    }
+    .track-pay-note-ok {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    /* ── Items card ───────────────────────────────────────── */
+    .track-items-card,
+    .track-address-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .track-card-hd {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--gray);
+      margin-bottom: 1.25rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .track-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .6rem 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: .9rem;
+    }
+    .track-item-row:last-child { border-bottom: none; }
+    .track-item-name { font-weight: 600; color: var(--dark); }
+    .track-item-price { font-weight: 700; color: var(--dark); }
+    .track-items-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 2px solid var(--dark);
+      font-weight: 800;
+      font-size: 1rem;
+    }
+    .track-address-card p {
+      font-size: .95rem;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    /* ── Not found ────────────────────────────────────────── */
+    .track-not-found {
+      padding: 5rem 0;
+      text-align: center;
+      background: var(--light);
+    }
+    .track-not-found .nf-icon {
+      font-size: 4rem;
+      color: #ef4444;
+      margin-bottom: 1rem;
+    }
+    .track-not-found h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: .5rem;
+    }
+    .track-not-found p {
+      color: var(--gray);
+      font-size: .95rem;
+    }
+    .track-not-found .nf-try-again {
+      margin-top: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: var(--yellow);
+      color: var(--dark);
+      font-weight: 800;
+      font-size: .85rem;
+      letter-spacing: .06em;
+      padding: .75rem 1.5rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .track-status-card { padding: 1.25rem; }
+      .track-card-top { flex-direction: column; align-items: flex-start; }
+      .step-icon { width: 38px; height: 38px; font-size: .85rem; }
+      .track-connector { max-width: 40px; margin-top: 17px; }
+      .step-lbl { font-size: .6rem; }
+      .track-items-card, .track-address-card { padding: 1.25rem; }
+      .track-search-box { margin: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== NAVBAR ==================== -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><img src="Header Logo.jpeg" alt="Dominic Pro Tools" /></div>
+        <div class="logo-text">
+          <span class="logo-brand">DOMINIC</span>
+          <span class="logo-sub">PRO TOOLS</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="products.html">PRODUCTS</a></li>
+        <li><a href="about.html">ABOUT</a></li>
+        <li><a href="contact.html">CONTACT</a></li>
+        <li><a href="track-order.html" class="nav-active">TRACK ORDER</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="tel:+2348135482358" class="nav-phone">
+          <i class="fa-solid fa-phone"></i>
+          <span>+234 813 548 2358</span>
+        </a>
+        <a href="#" class="nav-cart" id="cartBtn">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== HERO / SEARCH ==================== -->
+  <section class="track-hero">
+    <div class="container">
+      <p class="track-label"><i class="fa-solid fa-location-dot"></i> ORDER TRACKER</p>
+      <h1 class="track-title">Track Your Order</h1>
+      <p class="track-sub">Enter your tracking ID to see the real-time status of your order.</p>
+    </div>
+    <div class="track-search-wrap">
+      <div class="track-search-box">
+        <input type="text" id="trackInput" placeholder="e.g. DMT-2026-XXXX" autocomplete="off" />
+        <button id="trackBtn"><i class="fa-solid fa-magnifying-glass"></i> TRACK</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== RESULT SECTION ==================== -->
+  <section class="track-result-section" id="trackResult" style="display:none">
+    <div class="container" style="max-width:760px">
+
+      <!-- Status card -->
+      <div class="track-status-card">
+        <div class="track-card-top">
+          <div class="track-id-block">
+            <p class="track-lbl">TRACKING ID</p>
+            <strong id="resTrackId"></strong>
+          </div>
+          <div>
+            <p class="track-lbl">STATUS</p>
+            <span id="resStatusBadge" class="tr-badge"></span>
+          </div>
+        </div>
+        <div class="track-meta-row">
+          <div class="track-meta-item">
+            <p class="track-lbl">ORDER DATE</p>
+            <span id="resDate"></span>
+          </div>
+          <div class="track-meta-item">
+            <p class="track-lbl">CUSTOMER</p>
+            <span id="resCustomer"></span>
+          </div>
+          <div class="track-meta-item">
+            <p class="track-lbl">ORDER TOTAL</p>
+            <span id="resTotal" style="color:var(--yellow);font-weight:800"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress timeline -->
+      <div class="track-timeline-wrap">
+        <p class="track-timeline-hd">ORDER PROGRESS</p>
+        <div class="track-timeline">
+
+          <div class="track-step" id="step1">
+            <div class="step-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div class="step-lbl">Order<br>Placed</div>
+          </div>
+
+          <div class="track-connector" id="conn1"></div>
+
+          <div class="track-step" id="step2">
+            <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="step-lbl">Payment<br>Verified</div>
+          </div>
+
+          <div class="track-connector" id="conn2"></div>
+
+          <div class="track-step" id="step3">
+            <div class="step-icon"><i class="fa-solid fa-gear"></i></div>
+            <div class="step-lbl">Processing</div>
+          </div>
+
+          <div class="track-connector" id="conn3"></div>
+
+          <div class="track-step" id="step4">
+            <div class="step-icon"><i class="fa-solid fa-truck-fast"></i></div>
+            <div class="step-lbl">Dispatched</div>
+          </div>
+
+          <div class="track-connector" id="conn4"></div>
+
+          <div class="track-step" id="step5">
+            <div class="step-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="step-lbl">Delivered</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Payment / status note -->
+      <div class="track-pay-note" id="trackPayNote" style="display:none"></div>
+
+      <!-- Order items -->
+      <div class="track-items-card">
+        <p class="track-card-hd">ORDER ITEMS</p>
+        <div id="resItems"></div>
+        <div class="track-items-total">
+          <span>TOTAL</span>
+          <span id="resItemsTotal"></span>
+        </div>
+      </div>
+
+      <!-- Delivery address -->
+      <div class="track-address-card">
+        <p class="track-card-hd">DELIVERY ADDRESS</p>
+        <p id="resAddress"></p>
+      </div>
+
+      <!-- Need help -->
+      <div style="text-align:center;padding:1rem 0 .5rem">
+        <p style="color:var(--gray);font-size:.9rem">
+          Need help with your order?
+          <a href="https://wa.me/2348135482358" target="_blank" rel="noopener"
+             style="color:var(--yellow);font-weight:700;text-decoration:none">
+            <i class="fa-brands fa-whatsapp"></i> Chat us on WhatsApp
+          </a>
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== NOT FOUND ==================== -->
+  <div class="track-not-found" id="trackNotFound" style="display:none">
+    <div class="container">
+      <div class="nf-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+      <h3>Order Not Found</h3>
+      <p>No order found with tracking ID "<strong id="notFoundId"></strong>".<br>
+         Please double-check the ID and try again.</p>
+      <a href="track-order.html" class="nf-try-again">
+        <i class="fa-solid fa-rotate-left"></i> Try Again
+      </a>
+    </div>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo footer-logo">
+            <div class="logo-icon"><img src="Footer Logo.jpeg" alt="Dominic Pro Tools" /></div>
+            <div class="logo-text">
+              <span class="logo-brand">DOMINIC</span>
+              <span class="logo-sub">PRO TOOLS</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Built To Perform. Made To Last.</p>
+          <p class="footer-desc">Professional grade tools for technicians, engineers, mechanics and electricians across the world.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>CATEGORIES</h4>
+          <ul>
+            <li><a href="products.html">Power Tools</a></li>
+            <li><a href="products.html">Mechanical Engineer Tools</a></li>
+            <li><a href="products.html">Engineering Equipment</a></li>
+            <li><a href="products.html">Hand Tools</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>QUICK LINKS</h4>
+          <ul>
+            <li><a href="products.html">All Products</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="track-order.html">Track Your Order</a></li>
+            <li><a href="https://wa.me/2348135482358" target="_blank" rel="noopener">WhatsApp Orders</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col footer-contact-col">
+          <h4>CONTACT</h4>
+          <div class="contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>No 15B Onile Investment, Ifeleye, Oke parde, Dugbe, Ibadan.</span>
+          </div>
+          <div class="contact-item">
+            <i class="fa-solid fa-phone"></i>
+            <div>
+              <span class="contact-label">Ibadan Branch:</span>
+              <a href="tel:+2348135482358">+234 901 480 8044</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <i class="fa-solid fa-phone"></i>
+            <div>
+              <span class="contact-label">Main Office:</span>
+              <a href="tel:+2349014808044">+234 813 548 2358</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <span>&copy; 2026 Dominic Pro Tools. All rights reserved.</span>
+        <span class="paystack-badge">
+          <i class="fa-solid fa-shield-halved"></i>
+          Secured payments by Paystack
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+  <script src="js/products-data.js"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script src="js/cart.js"></script>
+
+  <script>
+    (function () {
+      const ORDERS_KEY = 'dpt_orders';
+
+      function fmt(n) { return '₦' + Number(n).toLocaleString(); }
+
+      function statusToStep(status) {
+        const s = (status || '').toLowerCase();
+        if (s === 'delivered')                        return 5;
+        if (s === 'dispatched')                       return 4;
+        if (s === 'processing')                       return 3;
+        if (s === 'paid' || s === 'confirmed')        return 2;
+        return 1;
+      }
+
+      function badgeClass(status) {
+        const s = (status || '').toLowerCase();
+        if (s === 'delivered')                        return 'tr-badge-success';
+        if (s === 'dispatched')                       return 'tr-badge-info';
+        if (s === 'processing' || s === 'confirmed')  return 'tr-badge-primary';
+        if (s === 'paid')                             return 'tr-badge-success';
+        return 'tr-badge-warning';
+      }
+
+      function doTrack(rawId) {
+        const id = rawId.trim().toUpperCase();
+        const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+        const order  = orders.find(o => (o.trackingId || '').toUpperCase() === id);
+
+        document.getElementById('trackResult').style.display   = 'none';
+        document.getElementById('trackNotFound').style.display = 'none';
+
+        if (!order) {
+          document.getElementById('notFoundId').textContent     = id;
+          document.getElementById('trackNotFound').style.display = 'block';
+          document.getElementById('trackNotFound').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        }
+
+        /* ── Populate header card ───────────────────────── */
+        document.getElementById('resTrackId').textContent   = order.trackingId;
+        document.getElementById('resDate').textContent      =
+          new Date(order.date).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('resCustomer').textContent  = order.customer.name;
+        document.getElementById('resTotal').textContent     = fmt(order.total);
+        document.getElementById('resAddress').textContent   = order.customer.address;
+
+        const badge = document.getElementById('resStatusBadge');
+        badge.textContent = order.status;
+        badge.className   = 'tr-badge ' + badgeClass(order.status);
+
+        /* ── Progress timeline ──────────────────────────── */
+        const step = statusToStep(order.status);
+        for (let i = 1; i <= 5; i++) {
+          const el = document.getElementById('step' + i);
+          el.classList.remove('active', 'done');
+          if      (i < step)  el.classList.add('done');
+          else if (i === step) el.classList.add('active');
+          if (i < 5) {
+            document.getElementById('conn' + i).classList.toggle('filled', i < step);
+          }
+        }
+
+        /* ── Payment note ───────────────────────────────── */
+        const noteEl = document.getElementById('trackPayNote');
+        const sl = (order.status || '').toLowerCase();
+        if (sl === 'pending verification') {
+          noteEl.innerHTML   = '<i class="fa-solid fa-triangle-exclamation"></i> Your Opay transfer is awaiting verification by the seller. Please allow up to 24 hours.';
+          noteEl.className   = 'track-pay-note track-pay-note-warn';
+          noteEl.style.display = 'flex';
+        } else if (sl === 'awaiting payment') {
+          noteEl.innerHTML   = '<i class="fa-solid fa-triangle-exclamation"></i> Payment has not been received yet. Please complete your payment to continue.';
+          noteEl.className   = 'track-pay-note track-pay-note-warn';
+          noteEl.style.display = 'flex';
+        } else {
+          noteEl.style.display = 'none';
+        }
+
+        /* ── Items list ─────────────────────────────────── */
+        document.getElementById('resItems').innerHTML = (order.items || []).map(item => `
+          <div class="track-item-row">
+            <span class="track-item-name">${item.name} &times; ${item.qty}</span>
+            <span class="track-item-price">${fmt(item.price * item.qty)}</span>
+          </div>
+        `).join('');
+        document.getElementById('resItemsTotal').textContent = fmt(order.total);
+
+        /* ── Show section ───────────────────────────────── */
+        document.getElementById('trackResult').style.display = 'block';
+        document.getElementById('trackResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      /* ── Button / Enter key ─────────────────────────────── */
+      document.getElementById('trackBtn').addEventListener('click', () => {
+        const val = document.getElementById('trackInput').value.trim();
+        if (!val) { alert('Please enter a tracking ID.'); return; }
+        doTrack(val);
+      });
+
+      document.getElementById('trackInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('trackBtn').click();
+      });
+
+      /* ── Auto-track from URL ?id=… ──────────────────────── */
+      const urlId = new URLSearchParams(window.location.search).get('id');
+      if (urlId) {
+        document.getElementById('trackInput').value = urlId;
+        doTrack(urlId);
+      }
+    })();
+  </script>
+
+  <!-- WhatsApp Float -->
+  <a class="whatsapp-float" href="https://wa.me/2348135482358?text=Hi%20Dominic%20Pro%20Tools!%20I%20found%20your%20store%20online%20and%20I%27m%20interested%20in%20your%20products.%0ACould%20you%20please%20assist%20me%20with%20pricing%20and%20availability%3F" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+    <span>Chat with us</span>
+  </a>
+</body>
+</html>

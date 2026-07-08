@@ -1,0 +1,601 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Dominic Pro Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- ==================== LOGIN ==================== -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">
+        DOMINIC PRO TOOLS
+        <span>ADMIN PANEL</span>
+      </div>
+      <form id="loginForm" novalidate>
+        <label>PASSWORD</label>
+        <input type="password" id="loginPw" placeholder="Enter admin password" autocomplete="current-password" />
+        <button type="submit">SIGN IN &rarr;</button>
+        
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== ADMIN PANEL ==================== -->
+  <div id="adminPanel" style="display:none">
+
+    <button class="mobile-menu-btn" id="mobileMenu" style="display:none" aria-label="Toggle menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><img src="Header Logo.jpeg" alt="Dominic Pro Tools" /></div>
+        <div class="sidebar-logo-text">
+          <span>DOMINIC PRO TOOLS</span>
+          <small>ADMIN PANEL</small>
+        </div>
+      </div>
+      <nav class="admin-nav">
+        <a class="admin-nav-link active" data-section="dashboard" href="#">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </a>
+        <a class="admin-nav-link" data-section="orders" href="#">
+          <i class="fa-solid fa-bag-shopping"></i> Orders
+        </a>
+        <a class="admin-nav-link" data-section="inventory" href="#">
+          <i class="fa-solid fa-boxes-stacked"></i> Inventory
+        </a>
+        <a class="admin-nav-link" data-section="settings" href="#">
+          <i class="fa-solid fa-gear"></i> Settings
+        </a>
+        <div class="nav-spacer"></div>
+        <a class="admin-nav-link" href="catalog.html">
+          <i class="fa-solid fa-pencil"></i> Catalog
+        </a>
+        <a class="admin-nav-link" href="index.html" target="_blank">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> View Site
+        </a>
+        <a class="admin-nav-link" href="#" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+
+      <!-- ── Dashboard ── -->
+      <section id="sectionDashboard" class="admin-section active">
+        <div class="admin-page-hd">
+          <h1>Dashboard</h1>
+          <span id="adminDate"></span>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card yellow">
+            <i class="fa-solid fa-bag-shopping metric-icon"></i>
+            <div>
+              <span class="metric-label">TOTAL ORDERS</span>
+              <span class="metric-value" id="mOrders">0</span>
+            </div>
+          </div>
+          <div class="metric-card orange">
+            <i class="fa-solid fa-clock metric-icon"></i>
+            <div>
+              <span class="metric-label">PENDING CONFIRMATION</span>
+              <span class="metric-value" id="mPending">0</span>
+            </div>
+          </div>
+          <div class="metric-card green">
+            <i class="fa-solid fa-naira-sign metric-icon"></i>
+            <div>
+              <span class="metric-label">CONFIRMED REVENUE</span>
+              <span class="metric-value" id="mRevenue">&#8358;0</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <i class="fa-solid fa-boxes-stacked metric-icon"></i>
+            <div>
+              <span class="metric-label">ACTIVE PRODUCTS</span>
+              <span class="metric-value" id="mProducts">0</span>
+            </div>
+          </div>
+          <div class="metric-card alert">
+            <i class="fa-solid fa-triangle-exclamation metric-icon"></i>
+            <div>
+              <span class="metric-label">LOW STOCK (&lt;5)</span>
+              <span class="metric-value" id="mLowStock">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-hd">
+            <h2>RECENT ORDERS</h2>
+            <button class="admin-btn admin-btn-ghost admin-btn-sm" data-goto="orders">View All</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>TRACKING ID</th>
+                  <th class="col-date">DATE</th>
+                  <th>CUSTOMER</th>
+                  <th class="col-items">ITEMS</th>
+                  <th>TOTAL</th>
+                  <th>STATUS</th>
+                  <th>UPDATE STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersBody">
+                <tr><td colspan="7" class="admin-empty">No orders yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Orders ── -->
+      <section id="sectionOrders" class="admin-section">
+        <div class="admin-page-hd">
+          <h1>Orders</h1>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <button class="admin-btn admin-btn-ghost admin-btn-sm" id="exportOrdersBtn">
+              <i class="fa-solid fa-download"></i> Export CSV
+            </button>
+            <button class="admin-btn admin-btn-danger admin-btn-sm" id="clearOrdersBtn">
+              <i class="fa-solid fa-trash-can"></i> Clear All
+            </button>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-hd">
+            <h2>ALL ORDER RECORDS</h2>
+            <span id="ordersCount" style="font-size:.78rem;color:var(--gray)">0 orders</span>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>TRACKING ID</th>
+                  <th class="col-date">DATE</th>
+                  <th>CUSTOMER</th>
+                  <th class="col-email">EMAIL</th>
+                  <th class="col-phone">PHONE</th>
+                  <th class="col-items">ITEMS</th>
+                  <th>TOTAL</th>
+                  <th>STATUS</th>
+                  <th>UPDATE STATUS</th>
+                  <th class="col-ref">REF</th>
+                </tr>
+              </thead>
+              <tbody id="allOrdersBody">
+                <tr><td colspan="10" class="admin-empty">No orders yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Inventory ── -->
+      <section id="sectionInventory" class="admin-section">
+        <div class="admin-page-hd">
+          <h1>Inventory</h1>
+          <a href="catalog.html" class="admin-btn admin-btn-primary">
+            <i class="fa-solid fa-pencil"></i> Edit Catalog
+          </a>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-hd">
+            <h2>STOCK LEVELS</h2>
+            <span id="inventoryCount" style="font-size:.78rem;color:var(--gray)">0 products</span>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>PRODUCT</th>
+                  <th>BRAND</th>
+                  <th>CATEGORY</th>
+                  <th>PRICE</th>
+                  <th>STOCK</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryBody">
+                <tr><td colspan="7" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Settings ── -->
+      <section id="sectionSettings" class="admin-section">
+        <div class="admin-page-hd">
+          <h1>Settings</h1>
+        </div>
+        <div class="settings-grid">
+
+          <div class="settings-section">
+            <h3>PAYSTACK</h3>
+            <div class="field">
+              <label>PUBLIC KEY</label>
+              <input type="text" id="paystackKeyInput" placeholder="pk_live_xxxxxxxxxxxx" />
+              <p class="settings-hint">Found in your Paystack dashboard → Settings → API Keys</p>
+            </div>
+            <button class="admin-btn admin-btn-primary" id="savePaystackKey">Save Key</button>
+          </div>
+
+          <div class="settings-section">
+            <h3>ADMIN PASSWORD</h3>
+            <div class="field">
+              <label>NEW PASSWORD</label>
+              <input type="password" id="newPassword" placeholder="Enter new password" />
+            </div>
+            <div class="field">
+              <label>CONFIRM PASSWORD</label>
+              <input type="password" id="confirmPassword" placeholder="Confirm new password" />
+            </div>
+            <button class="admin-btn admin-btn-dark" id="changePasswordBtn">Update Password</button>
+          </div>
+
+          <div class="settings-section" style="grid-column: 1/-1">
+            <h3>DATA MANAGEMENT</h3>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap">
+              <button class="admin-btn admin-btn-danger" id="resetCatalogBtn">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset Catalog to Defaults
+              </button>
+              <button class="admin-btn admin-btn-danger" id="clearAllDataBtn">
+                <i class="fa-solid fa-trash-can"></i> Clear All Data (Orders + Catalog)
+              </button>
+            </div>
+            <p class="settings-hint" style="margin-top:.75rem">Warning: these actions cannot be undone.</p>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/products-data.js"></script>
+  <script>
+    /* ── Auth ─────────────────────────────────────────────── */
+    const AUTH_KEY  = 'dpt_admin_auth';
+    const PASS_KEY  = 'dpt_admin_pass';
+    const DEF_PASS  = 'Kalesh2026';
+
+    function isAuth() { return sessionStorage.getItem(AUTH_KEY) === '1'; }
+
+    function showPanel() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminPanel').style.display  = 'flex';
+      init();
+    }
+
+    const CONFIRMED_STATUSES = ['confirmed','processing','dispatched','delivered','paid'];
+    const ORDER_STATUSES     = ['Pending Verification','Awaiting Payment','Paid','Confirmed','Processing','Dispatched','Delivered'];
+
+    if (isAuth()) showPanel();
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const pw      = document.getElementById('loginPw').value;
+      const stored  = localStorage.getItem(PASS_KEY) || DEF_PASS;
+      if (pw === stored) {
+        sessionStorage.setItem(AUTH_KEY, '1');
+        showPanel();
+      } else {
+        document.getElementById('loginPw').style.border = '1.5px solid #ef4444';
+        setTimeout(() => document.getElementById('loginPw').style.border = '', 1500);
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', e => {
+      e.preventDefault();
+      sessionStorage.removeItem(AUTH_KEY);
+      location.reload();
+    });
+
+    /* ── Navigation ───────────────────────────────────────── */
+    function showSection(name) {
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('section' + name[0].toUpperCase() + name.slice(1)).classList.add('active');
+      document.querySelectorAll('.admin-nav-link[data-section]').forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.admin-nav-link[data-section="${name}"]`);
+      if (active) active.classList.add('active');
+      if (name === 'dashboard') loadDashboard();
+      if (name === 'orders')    loadOrders();
+      if (name === 'inventory') loadInventory();
+      if (name === 'settings')  loadSettings();
+      closeSidebar();
+    }
+
+    document.querySelectorAll('.admin-nav-link[data-section]').forEach(link =>
+      link.addEventListener('click', e => { e.preventDefault(); showSection(link.dataset.section); })
+    );
+
+    document.querySelectorAll('[data-goto]').forEach(btn =>
+      btn.addEventListener('click', () => showSection(btn.dataset.goto))
+    );
+
+    /* ── Mobile sidebar ───────────────────────────────────── */
+    const sidebar = document.getElementById('adminSidebar');
+    document.getElementById('mobileMenu').addEventListener('click', () =>
+      sidebar.classList.toggle('open')
+    );
+    function closeSidebar() { sidebar.classList.remove('open'); }
+
+    /* ── Helpers ──────────────────────────────────────────── */
+    function fmt(n) { return '₦' + Number(n).toLocaleString(); }
+
+    function statusBadge(s) {
+      if (!s) return 'badge-pending';
+      const v = s.toLowerCase();
+      if (v.includes('awaiting') || v.includes('pending')) return 'badge-pending';
+      if (v === 'confirmed')  return 'badge-confirmed';
+      if (v === 'processing') return 'badge-processing';
+      if (v === 'dispatched') return 'badge-dispatched';
+      if (v === 'delivered' || v === 'paid') return 'badge-paid';
+      return 'badge-inactive';
+    }
+
+    function getOrders() { return JSON.parse(localStorage.getItem('dpt_orders') || '[]'); }
+
+    function getProducts() {
+      const overrides = JSON.parse(localStorage.getItem('dpt_product_overrides') || '{}');
+      const custom    = JSON.parse(localStorage.getItem('dpt_products_custom')   || '[]');
+      const base = window.DPT_BASE_PRODUCTS.map(p => ({ ...p, ...(overrides[p.id] || {}) }));
+      return [...base, ...custom];
+    }
+
+    /* ── Dashboard ────────────────────────────────────────── */
+    function loadDashboard() {
+      const orders   = getOrders();
+      const products = getProducts();
+      const confirmed = orders.filter(o => CONFIRMED_STATUSES.includes((o.status || '').toLowerCase()));
+      const pending   = orders.filter(o => !CONFIRMED_STATUSES.includes((o.status || '').toLowerCase()));
+      const revenue   = confirmed.reduce((s, o) => s + o.total, 0);
+      const active    = products.filter(p => p.active !== false).length;
+      const lowStock  = products.filter(p => p.active !== false && (p.stock || 0) < 5).length;
+
+      document.getElementById('mOrders').textContent   = orders.length;
+      document.getElementById('mPending').textContent  = pending.length;
+      document.getElementById('mRevenue').textContent  = fmt(revenue);
+      document.getElementById('mProducts').textContent = active;
+      document.getElementById('mLowStock').textContent = lowStock;
+      document.getElementById('adminDate').textContent = new Date().toDateString();
+
+      const tbody = document.getElementById('recentOrdersBody');
+      if (!orders.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">No orders yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = orders.slice(0, 6).map(o => `
+        <tr>
+          <td><span class="tracking-chip">${o.trackingId || '—'}</span></td>
+          <td class="col-date">${new Date(o.date).toLocaleDateString()}</td>
+          <td>${o.customer.name}</td>
+          <td class="col-items">${o.items.length} item(s)</td>
+          <td><strong>${fmt(o.total)}</strong></td>
+          <td><span class="badge ${statusBadge(o.status)}">${o.status}</span></td>
+          <td>
+            <div class="status-ctrl">
+              <select class="status-select" data-id="${o.id}">
+                ${ORDER_STATUSES.map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}
+              </select>
+              <button class="admin-btn admin-btn-primary admin-btn-sm save-status-btn" data-id="${o.id}" title="Save status"><i class="fa-solid fa-check"></i></button>
+              <button class="admin-btn admin-btn-danger admin-btn-sm del-order-btn" data-id="${o.id}" title="Delete order"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* ── Orders ───────────────────────────────────────────── */
+    function saveOrderStatus(orderId, newStatus) {
+      const orders = getOrders();
+      const idx = orders.findIndex(o => o.id === orderId);
+      if (idx === -1) return;
+      orders[idx].status = newStatus;
+      localStorage.setItem('dpt_orders', JSON.stringify(orders));
+      loadOrders();
+      loadDashboard();
+    }
+
+    function loadOrders() {
+      const orders = getOrders();
+      document.getElementById('ordersCount').textContent = orders.length + ' order(s)';
+      const tbody = document.getElementById('allOrdersBody');
+      if (!orders.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="admin-empty">No orders yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td><span class="tracking-chip">${o.trackingId || '—'}</span></td>
+          <td class="col-date" style="white-space:nowrap">${new Date(o.date).toLocaleString()}</td>
+          <td>${o.customer.name}</td>
+          <td class="col-email">${o.customer.email}</td>
+          <td class="col-phone">${o.customer.phone}</td>
+          <td class="col-items" style="max-width:180px;white-space:normal;font-size:.75rem">${o.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
+          <td><strong>${fmt(o.total)}</strong></td>
+          <td><span class="badge ${statusBadge(o.status)}">${o.status}</span></td>
+          <td>
+            <div class="status-ctrl">
+              <select class="status-select" data-id="${o.id}">
+                ${ORDER_STATUSES.map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}
+              </select>
+              <button class="admin-btn admin-btn-primary admin-btn-sm save-status-btn" data-id="${o.id}" title="Save status"><i class="fa-solid fa-check"></i></button>
+              <button class="admin-btn admin-btn-danger admin-btn-sm del-order-btn" data-id="${o.id}" title="Delete order"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </td>
+          <td class="col-ref" style="font-family:monospace;font-size:.72rem">${o.ref}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('clearOrdersBtn').addEventListener('click', () => {
+      if (confirm('Clear ALL order records? This cannot be undone.')) {
+        localStorage.removeItem('dpt_orders');
+        loadOrders();
+        loadDashboard();
+      }
+    });
+
+    function deleteOrder(orderId) {
+      if (!confirm('Delete this order? This cannot be undone.')) return;
+      const orders = getOrders().filter(o => o.id !== orderId);
+      localStorage.setItem('dpt_orders', JSON.stringify(orders));
+      loadOrders();
+      loadDashboard();
+    }
+
+    function handleOrderTableClick(e) {
+      if (e.target.closest('.save-status-btn')) {
+        const btn     = e.target.closest('.save-status-btn');
+        const select  = btn.closest('.status-ctrl').querySelector('.status-select');
+        saveOrderStatus(btn.dataset.id, select.value);
+      } else if (e.target.closest('.del-order-btn')) {
+        deleteOrder(e.target.closest('.del-order-btn').dataset.id);
+      }
+    }
+
+    document.getElementById('allOrdersBody').addEventListener('click', handleOrderTableClick);
+    document.getElementById('recentOrdersBody').addEventListener('click', handleOrderTableClick);
+
+    document.getElementById('exportOrdersBtn').addEventListener('click', () => {
+      const orders = getOrders();
+      if (!orders.length) { alert('No orders to export.'); return; }
+      const headers = ['Order ID','Tracking ID','Date','Customer','Email','Phone','Address','Items','Total','Status','Ref'];
+      const rows = orders.map(o => [
+        o.id,
+        o.trackingId || '',
+        new Date(o.date).toLocaleString(),
+        o.customer.name,
+        o.customer.email,
+        o.customer.phone,
+        o.customer.address,
+        o.items.map(i => `${i.name} x${i.qty}`).join(' | '),
+        o.total,
+        o.status,
+        o.ref
+      ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'dominic-orders-' + new Date().toISOString().slice(0,10) + '.csv';
+      a.click();
+    });
+
+    /* ── Inventory ────────────────────────────────────────── */
+    function loadInventory() {
+      const products = getProducts();
+      document.getElementById('inventoryCount').textContent = products.length + ' products';
+      const tbody = document.getElementById('inventoryBody');
+      tbody.innerHTML = products.map(p => {
+        const stock = p.stock || 0;
+        const badge = stock < 5 ? 'badge-low' : stock < 10 ? 'badge-medium' : 'badge-active';
+        const label = stock < 5 ? 'Low'       : stock < 10 ? 'Medium'       : 'OK';
+        return `
+          <tr>
+            <td style="color:var(--gray)">${p.id}</td>
+            <td>${p.name}</td>
+            <td>${p.brand}</td>
+            <td>${p.categoryLabel}</td>
+            <td>${fmt(p.price)}</td>
+            <td><span class="badge ${badge}">${stock} — ${label}</span></td>
+            <td><span class="badge ${p.active !== false ? 'badge-active' : 'badge-inactive'}">${p.active !== false ? 'Active' : 'Hidden'}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* ── Settings ─────────────────────────────────────────── */
+    function loadSettings() {
+      const key = localStorage.getItem('dpt_paystack_key') || '';
+      document.getElementById('paystackKeyInput').value = key;
+    }
+
+    document.getElementById('savePaystackKey').addEventListener('click', () => {
+      const key = document.getElementById('paystackKeyInput').value.trim();
+      if (!key) { alert('Enter a Paystack public key.'); return; }
+      localStorage.setItem('dpt_paystack_key', key);
+      alert('Paystack key saved!');
+    });
+
+    document.getElementById('changePasswordBtn').addEventListener('click', () => {
+      const pw1 = document.getElementById('newPassword').value;
+      const pw2 = document.getElementById('confirmPassword').value;
+      if (!pw1) { alert('Enter a new password.'); return; }
+      if (pw1 !== pw2) { alert('Passwords do not match.'); return; }
+      localStorage.setItem(PASS_KEY, pw1);
+      document.getElementById('newPassword').value    = '';
+      document.getElementById('confirmPassword').value = '';
+      alert('Password updated successfully!');
+    });
+
+    document.getElementById('resetCatalogBtn').addEventListener('click', () => {
+      if (confirm('Reset all catalog edits to factory defaults? Custom-added products will be removed.')) {
+        localStorage.removeItem('dpt_product_overrides');
+        localStorage.removeItem('dpt_products_custom');
+        alert('Catalog reset to defaults.');
+        loadInventory();
+      }
+    });
+
+    document.getElementById('clearAllDataBtn').addEventListener('click', () => {
+      if (confirm('This will clear ALL orders AND catalog edits. Are you sure?')) {
+        ['dpt_orders','dpt_product_overrides','dpt_products_custom','dpt_cart'].forEach(k =>
+          localStorage.removeItem(k)
+        );
+        alert('All data cleared.');
+        loadDashboard();
+      }
+    });
+
+    /* ── Backfill tracking IDs for legacy orders ──────────── */
+    function generateAdminTrackingId(existingSet) {
+      const year = new Date().getFullYear();
+      let id;
+      do {
+        const digits = String(Math.floor(Math.random() * 9000) + 1000);
+        id = 'DMT-' + year + '-' + digits;
+      } while (existingSet.has(id));
+      return id;
+    }
+
+    function migrateOrders() {
+      const orders = getOrders();
+      const taken = new Set(orders.map(o => o.trackingId).filter(Boolean));
+      let changed = false;
+      orders.forEach(o => {
+        if (!o.trackingId) {
+          o.trackingId = generateAdminTrackingId(taken);
+          taken.add(o.trackingId);
+          changed = true;
+        }
+      });
+      if (changed) localStorage.setItem('dpt_orders', JSON.stringify(orders));
+    }
+
+    /* ── Init ─────────────────────────────────────────────── */
+    function init() {
+      migrateOrders();
+      loadDashboard();
+    }
+  </script>
+</body>
+</html>
