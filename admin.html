@@ -356,7 +356,12 @@
     function getProducts() {
       const overrides = JSON.parse(localStorage.getItem('dpt_product_overrides') || '{}');
       const custom    = JSON.parse(localStorage.getItem('dpt_products_custom')   || '[]');
-      const base = window.DPT_BASE_PRODUCTS.map(p => ({ ...p, ...(overrides[p.id] || {}) }));
+      const base = window.DPT_BASE_PRODUCTS.map(p => {
+        const ov = { ...(overrides[p.id] || {}) };
+        delete ov.category;
+        delete ov.categories;
+        return { ...p, ...ov };
+      });
       return [...base, ...custom];
     }
 

@@ -447,6 +447,7 @@
         <label>PRODUCT NAME</label>
         <input type="text" id="pName" placeholder="e.g. BOSCH 12V Cordless Drill" />
       </div>
+      <input type="hidden" id="pIsBase" value="" />
       <div class="field-row">
         <div class="field">
           <label>BRAND</label>
@@ -456,6 +457,11 @@
           <label>CATEGORY</label>
           <select id="pCategory"></select>
         </div>
+      </div>
+      <div class="field" id="pMultiCatInfo" style="display:none">
+        <label>APPEARS IN ALL THESE CATEGORIES</label>
+        <p id="pMultiCatList" style="font-size:.78rem;color:var(--y);line-height:1.7;padding:.35rem 0;"></p>
+        <p style="font-size:.67rem;color:var(--g);">Any edits here (name, price, stock, image) will update this product in <strong style="color:var(--w)">all</strong> the categories listed above.</p>
       </div>
       <div class="field-row">
         <div class="field">
@@ -584,7 +590,14 @@
   function getAllProducts() {
     const ov = getOverrides();
     const cu = getCustomProds();
-    const base = window.DPT_BASE_PRODUCTS.map(p => ({ ...p, ...(ov[p.id] || {}), _isBase: true }));
+    const base = window.DPT_BASE_PRODUCTS.map(p => {
+      const ovEntry = { ...(ov[p.id] || {}) };
+      // Never let an override change which categories a base product belongs to.
+      // Category membership is authoritative in products-data.js.
+      delete ovEntry.category;
+      delete ovEntry.categories;
+      return { ...p, ...ovEntry, _isBase: true };
+    });
     return [...base, ...cu.map(p => ({ ...p, _isBase: false }))];
   }
 
@@ -829,6 +842,7 @@
   function openAddProd() {
     document.getElementById('prodModalTitle').textContent = 'ADD PRODUCT';
     document.getElementById('pEditId').value   = '';
+    document.getElementById('pIsBase').value   = '';
     document.getElementById('pName').value     = '';
     document.getElementById('pBrand').value    = '';
     document.getElementById('pPrice').value    = '';
@@ -837,6 +851,8 @@
     document.getElementById('pStock').value    = '10';
     document.getElementById('pImage').value    = '';
     document.getElementById('pActive').checked = true;
+    document.getElementById('pCategory').disabled = false;
+    document.getElementById('pMultiCatInfo').style.display = 'none';
     resetImgUpload('pImageFile', 'pImageFileName', 'pImagePreview');
     populateCatSelect(activeCatId);
     document.getElementById('productModal').style.display = 'flex';
@@ -845,8 +861,10 @@
   function openEditProd(id) {
     const p = getAllProducts().find(x => x.id == id);
     if (!p) return;
+    const isBase = !!p._isBase;
     document.getElementById('prodModalTitle').textContent = 'EDIT PRODUCT';
     document.getElementById('pEditId').value   = id;
+    document.getElementById('pIsBase').value   = isBase ? '1' : '';
     document.getElementById('pName').value     = p.name;
     document.getElementById('pBrand').value    = p.brand || '';
     document.getElementById('pPrice').value    = p.price;
@@ -857,11 +875,35 @@
     document.getElementById('pActive').checked = p.active !== false;
     resetImgUpload('pImageFile', 'pImageFileName', 'pImagePreview');
     if (p.image) showImgPreview('pImagePreviewImg', 'pImagePreview', p.image);
-    populateCatSelect((p.categories || [p.category])[0]);
+
+    const cats    = p.categories || (p.category ? [p.category] : []);
+    const catSel  = document.getElementById('pCategory');
+    const infoEl  = document.getElementById('pMultiCatInfo');
+
+    if (isBase && cats.length > 1) {
+      const preferred = (activeCatId && cats.includes(activeCatId)) ? activeCatId : cats[0];
+      populateCatSelect(preferred);
+      catSel.disabled = true;
+      const catNames = cats.map(cid => {
+        const obj = getAllCats().find(c => c.id === cid);
+        return obj ? obj.name : cid;
+      });
+      infoEl.style.display = 'block';
+      document.getElementById('pMultiCatList').textContent = catNames.join(' · ');
+    } else {
+      catSel.disabled = false;
+      infoEl.style.display = 'none';
+      populateCatSelect(cats[0] || activeCatId);
+    }
+
     document.getElementById('productModal').style.display = 'flex';
   }
 
-  function closeProdModal() { document.getElementById('productModal').style.display = 'none'; }
+  function closeProdModal() {
+    document.getElementById('productModal').style.display = 'none';
+    document.getElementById('pCategory').disabled = false;
+    document.getElementById('pMultiCatInfo').style.display = 'none';
+  }
   document.getElementById('prodModalClose').addEventListener('click', closeProdModal);
   document.getElementById('prodModalCancel').addEventListener('click', closeProdModal);
 
@@ -892,7 +934,11 @@
       if (isBase) {
         const ov = getOverrides();
         if (!ov[numId]) ov[numId] = {};
-        Object.assign(ov[numId], { name, brand, category, categoryLabel, price, oldPrice, discount, stock, image, active });
+        // Strip stale single-category overrides so the base product's
+        // categories array (products-data.js) stays authoritative.
+        delete ov[numId].category;
+        delete ov[numId].categories;
+        Object.assign(ov[numId], { name, brand, price, oldPrice, discount, stock, image, active });
         LS.set('dpt_product_overrides', ov);
       } else {
         const cu = getCustomProds();
