@@ -44,10 +44,6 @@ window.DPT_DB = {
   async push(lsKey, value) {
     const cfg = KEY_MAP[lsKey];
     if (!cfg) return;
-    try {
-      await setDoc(dRef(cfg.docId), cfg.list ? { list: value } : value);
-    } catch (err) {
-      console.warn('[DPT_DB] push failed for', lsKey, err);
-    }
+    await setDoc(dRef(cfg.docId), cfg.list ? { list: value } : value);
   },
 };

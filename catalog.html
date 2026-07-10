@@ -74,6 +74,17 @@
     }
     .btn-hdr:hover { border-color:var(--y); color:var(--y); }
 
+    /* ── Sync toast ────────────────────────────────────────── */
+    #syncToast {
+      position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999;
+      padding:.6rem 1.1rem; border-radius:4px; font-size:.78rem; font-weight:700;
+      letter-spacing:.05em; opacity:0; transition:opacity .3s;
+      pointer-events:none;
+    }
+    #syncToast.show    { opacity:1; }
+    #syncToast.success { background:#16a34a; color:#fff; }
+    #syncToast.error   { background:var(--red); color:#fff; }
+
     /* ── Content wrapper ───────────────────────────────────── */
     .cat-content { max-width:900px; margin:0 auto; padding:2rem 1.5rem; }
 
@@ -293,6 +304,8 @@
   </style>
 </head>
 <body>
+
+<div id="syncToast"></div>
 
 <!-- ==================== LOGIN ==================== -->
 <div id="loginScreen">
@@ -577,11 +590,20 @@
   /* ══════════════════════════════════════════════════════════
      DATA HELPERS
   ══════════════════════════════════════════════════════════ */
+  let _syncTimer = null;
+  function showSyncToast(ok) {
+    const t = document.getElementById('syncToast');
+    t.textContent = ok ? '✓ Synced to cloud' : '✗ Cloud sync failed — check Firestore rules';
+    t.className   = ok ? 'show success' : 'show error';
+    clearTimeout(_syncTimer);
+    _syncTimer = setTimeout(() => { t.className = ok ? 'success' : 'error'; }, 3000);
+  }
+
   const LS = {
     get: k      => JSON.parse(localStorage.getItem(k) || 'null'),
     set: (k, v) => {
       localStorage.setItem(k, JSON.stringify(v));
-      if (window.DPT_DB) window.DPT_DB.push(k, v);
+      if (window.DPT_DB) window.DPT_DB.push(k, v).then(() => showSyncToast(true)).catch(() => showSyncToast(false));
     },
     del: k      => localStorage.removeItem(k)
   };
