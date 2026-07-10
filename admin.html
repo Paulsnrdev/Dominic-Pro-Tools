@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/admin.css" />
+  <script type="module" src="js/firebase-db.js"></script>
 </head>
 <body>
 
@@ -278,10 +279,11 @@
 
     function isAuth() { return sessionStorage.getItem(AUTH_KEY) === '1'; }
 
-    function showPanel() {
+    async function showPanel() {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminPanel').style.display  = 'flex';
       init();
+      if (window.DPT_DB) { await window.DPT_DB.pull(); loadDashboard(); }
     }
 
     const CONFIRMED_STATUSES = ['confirmed','processing','dispatched','delivered','paid'];
@@ -356,7 +358,12 @@
     function getProducts() {
       const overrides = JSON.parse(localStorage.getItem('dpt_product_overrides') || '{}');
       const custom    = JSON.parse(localStorage.getItem('dpt_products_custom')   || '[]');
-      const base = window.DPT_BASE_PRODUCTS.map(p => ({ ...p, ...(overrides[p.id] || {}) }));
+      const base = window.DPT_BASE_PRODUCTS.map(p => {
+        const ov = { ...(overrides[p.id] || {}) };
+        delete ov.category;
+        delete ov.categories;
+        return { ...p, ...ov };
+      });
       return [...base, ...custom];
     }
 
@@ -547,20 +554,32 @@
       alert('Password updated successfully!');
     });
 
-    document.getElementById('resetCatalogBtn').addEventListener('click', () => {
+    document.getElementById('resetCatalogBtn').addEventListener('click', async () => {
       if (confirm('Reset all catalog edits to factory defaults? Custom-added products will be removed.')) {
         localStorage.removeItem('dpt_product_overrides');
         localStorage.removeItem('dpt_products_custom');
+        if (window.DPT_DB) {
+          await Promise.all([
+            window.DPT_DB.push('dpt_product_overrides', {}),
+            window.DPT_DB.push('dpt_products_custom', []),
+          ]);
+        }
         alert('Catalog reset to defaults.');
         loadInventory();
       }
     });
 
-    document.getElementById('clearAllDataBtn').addEventListener('click', () => {
+    document.getElementById('clearAllDataBtn').addEventListener('click', async () => {
       if (confirm('This will clear ALL orders AND catalog edits. Are you sure?')) {
         ['dpt_orders','dpt_product_overrides','dpt_products_custom','dpt_cart'].forEach(k =>
           localStorage.removeItem(k)
         );
+        if (window.DPT_DB) {
+          await Promise.all([
+            window.DPT_DB.push('dpt_product_overrides', {}),
+            window.DPT_DB.push('dpt_products_custom', []),
+          ]);
+        }
         alert('All data cleared.');
         loadDashboard();
       }

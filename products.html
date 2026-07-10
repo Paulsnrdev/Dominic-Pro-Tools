@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <!-- Product data must load before the inline script -->
   <script src="js/products-data.js"></script>
+  <script type="module" src="js/firebase-db.js"></script>
 </head>
 <body>
 
@@ -174,14 +175,24 @@
   <script src="https://js.paystack.co/v1/inline.js"></script>
   <script src="js/cart.js"></script>
 
-  <script>
-    (function () {
+  <script type="module">
+    (async function () {
+      /* Pull latest catalog data from Firebase before rendering */
+      if (window.DPT_DB) {
+        try { await Promise.race([window.DPT_DB.pull(), new Promise(r => setTimeout(r, 4000))]); } catch(_) {}
+      }
+
       /* ── Merge base products with admin overrides ─────────── */
       function getProducts() {
         const overrides = JSON.parse(localStorage.getItem('dpt_product_overrides') || '{}');
         const custom    = JSON.parse(localStorage.getItem('dpt_products_custom')   || '[]');
         const base = window.DPT_BASE_PRODUCTS
-          .map(p => ({ ...p, ...(overrides[p.id] || {}) }))
+          .map(p => {
+            const ov = { ...(overrides[p.id] || {}) };
+            delete ov.category;
+            delete ov.categories;
+            return { ...p, ...ov };
+          })
           .filter(p => p.active !== false);
         return [...base, ...custom.filter(p => p.active !== false)];
       }

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script type="module" src="js/firebase-db.js"></script>
   <style>
     :root {
       --y:   #F5A623;
@@ -447,6 +448,7 @@
         <label>PRODUCT NAME</label>
         <input type="text" id="pName" placeholder="e.g. BOSCH 12V Cordless Drill" />
       </div>
+      <input type="hidden" id="pIsBase" value="" />
       <div class="field-row">
         <div class="field">
           <label>BRAND</label>
@@ -456,6 +458,11 @@
           <label>CATEGORY</label>
           <select id="pCategory"></select>
         </div>
+      </div>
+      <div class="field" id="pMultiCatInfo" style="display:none">
+        <label>APPEARS IN ALL THESE CATEGORIES</label>
+        <p id="pMultiCatList" style="font-size:.78rem;color:var(--y);line-height:1.7;padding:.35rem 0;"></p>
+        <p style="font-size:.67rem;color:var(--g);">Any edits here (name, price, stock, image) will update this product in <strong style="color:var(--w)">all</strong> the categories listed above.</p>
       </div>
       <div class="field-row">
         <div class="field">
@@ -521,7 +528,7 @@
 </div>
 
 <script src="js/products-data.js"></script>
-<script>
+<script type="module">
   /* ══════════════════════════════════════════════════════════
      AUTH
   ══════════════════════════════════════════════════════════ */
@@ -542,10 +549,11 @@
     }
   });
 
-  function showPanel() {
+  async function showPanel() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminPanel').style.display  = 'block';
     init();
+    if (window.DPT_DB) { await window.DPT_DB.pull(); init(); }
   }
 
   document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -570,9 +578,12 @@
      DATA HELPERS
   ══════════════════════════════════════════════════════════ */
   const LS = {
-    get: k       => JSON.parse(localStorage.getItem(k) || 'null'),
-    set: (k, v)  => localStorage.setItem(k, JSON.stringify(v)),
-    del: k       => localStorage.removeItem(k)
+    get: k      => JSON.parse(localStorage.getItem(k) || 'null'),
+    set: (k, v) => {
+      localStorage.setItem(k, JSON.stringify(v));
+      if (window.DPT_DB) window.DPT_DB.push(k, v);
+    },
+    del: k      => localStorage.removeItem(k)
   };
 
   function getOverrides()  { return LS.get('dpt_product_overrides') || {}; }
@@ -584,7 +595,14 @@
   function getAllProducts() {
     const ov = getOverrides();
     const cu = getCustomProds();
-    const base = window.DPT_BASE_PRODUCTS.map(p => ({ ...p, ...(ov[p.id] || {}), _isBase: true }));
+    const base = window.DPT_BASE_PRODUCTS.map(p => {
+      const ovEntry = { ...(ov[p.id] || {}) };
+      // Never let an override change which categories a base product belongs to.
+      // Category membership is authoritative in products-data.js.
+      delete ovEntry.category;
+      delete ovEntry.categories;
+      return { ...p, ...ovEntry, _isBase: true };
+    });
     return [...base, ...cu.map(p => ({ ...p, _isBase: false }))];
   }
 
@@ -829,6 +847,7 @@
   function openAddProd() {
     document.getElementById('prodModalTitle').textContent = 'ADD PRODUCT';
     document.getElementById('pEditId').value   = '';
+    document.getElementById('pIsBase').value   = '';
     document.getElementById('pName').value     = '';
     document.getElementById('pBrand').value    = '';
     document.getElementById('pPrice').value    = '';
@@ -837,6 +856,8 @@
     document.getElementById('pStock').value    = '10';
     document.getElementById('pImage').value    = '';
     document.getElementById('pActive').checked = true;
+    document.getElementById('pCategory').disabled = false;
+    document.getElementById('pMultiCatInfo').style.display = 'none';
     resetImgUpload('pImageFile', 'pImageFileName', 'pImagePreview');
     populateCatSelect(activeCatId);
     document.getElementById('productModal').style.display = 'flex';
@@ -845,8 +866,10 @@
   function openEditProd(id) {
     const p = getAllProducts().find(x => x.id == id);
     if (!p) return;
+    const isBase = !!p._isBase;
     document.getElementById('prodModalTitle').textContent = 'EDIT PRODUCT';
     document.getElementById('pEditId').value   = id;
+    document.getElementById('pIsBase').value   = isBase ? '1' : '';
     document.getElementById('pName').value     = p.name;
     document.getElementById('pBrand').value    = p.brand || '';
     document.getElementById('pPrice').value    = p.price;
@@ -857,11 +880,35 @@
     document.getElementById('pActive').checked = p.active !== false;
     resetImgUpload('pImageFile', 'pImageFileName', 'pImagePreview');
     if (p.image) showImgPreview('pImagePreviewImg', 'pImagePreview', p.image);
-    populateCatSelect((p.categories || [p.category])[0]);
+
+    const cats    = p.categories || (p.category ? [p.category] : []);
+    const catSel  = document.getElementById('pCategory');
+    const infoEl  = document.getElementById('pMultiCatInfo');
+
+    if (isBase && cats.length > 1) {
+      const preferred = (activeCatId && cats.includes(activeCatId)) ? activeCatId : cats[0];
+      populateCatSelect(preferred);
+      catSel.disabled = true;
+      const catNames = cats.map(cid => {
+        const obj = getAllCats().find(c => c.id === cid);
+        return obj ? obj.name : cid;
+      });
+      infoEl.style.display = 'block';
+      document.getElementById('pMultiCatList').textContent = catNames.join(' · ');
+    } else {
+      catSel.disabled = false;
+      infoEl.style.display = 'none';
+      populateCatSelect(cats[0] || activeCatId);
+    }
+
     document.getElementById('productModal').style.display = 'flex';
   }
 
-  function closeProdModal() { document.getElementById('productModal').style.display = 'none'; }
+  function closeProdModal() {
+    document.getElementById('productModal').style.display = 'none';
+    document.getElementById('pCategory').disabled = false;
+    document.getElementById('pMultiCatInfo').style.display = 'none';
+  }
   document.getElementById('prodModalClose').addEventListener('click', closeProdModal);
   document.getElementById('prodModalCancel').addEventListener('click', closeProdModal);
 
@@ -892,7 +939,11 @@
       if (isBase) {
         const ov = getOverrides();
         if (!ov[numId]) ov[numId] = {};
-        Object.assign(ov[numId], { name, brand, category, categoryLabel, price, oldPrice, discount, stock, image, active });
+        // Strip stale single-category overrides so the base product's
+        // categories array (products-data.js) stays authoritative.
+        delete ov[numId].category;
+        delete ov[numId].categories;
+        Object.assign(ov[numId], { name, brand, price, oldPrice, discount, stock, image, active });
         LS.set('dpt_product_overrides', ov);
       } else {
         const cu = getCustomProds();
@@ -969,9 +1020,17 @@
   /* ══════════════════════════════════════════════════════════
      RE-IMPORT
   ══════════════════════════════════════════════════════════ */
-  document.getElementById('reimportBtn').addEventListener('click', () => {
+  document.getElementById('reimportBtn').addEventListener('click', async () => {
     if (!confirm('Reset all catalog changes to factory defaults?\nCustom products and categories will be removed.')) return;
     ['dpt_product_overrides','dpt_products_custom','dpt_cat_overrides','dpt_cats_custom'].forEach(k => LS.del(k));
+    if (window.DPT_DB) {
+      await Promise.all([
+        window.DPT_DB.push('dpt_product_overrides', {}),
+        window.DPT_DB.push('dpt_products_custom', []),
+        window.DPT_DB.push('dpt_cat_overrides', {}),
+        window.DPT_DB.push('dpt_cats_custom', []),
+      ]);
+    }
     renderStats();
     renderCats();
     alert('Catalog restored to factory defaults.');
@@ -1038,6 +1097,16 @@
 
   setupImageUpload('pImageFile', 'pImage', 'pImagePreview', 'pImagePreviewImg', 'pImageFileName');
   setupImageUpload('cImageFile', 'cImage', 'cImagePreview', 'cImagePreviewImg', 'cImageFileName');
+
+  /* Expose functions used by onclick attributes in dynamically-generated HTML */
+  Object.assign(window, {
+    openProductsPanel,
+    openEditCat,
+    confirmDeleteCat,
+    openEditProd,
+    toggleProdVisibility,
+    confirmDeleteProd,
+  });
 </script>
 </body>
 </html>
