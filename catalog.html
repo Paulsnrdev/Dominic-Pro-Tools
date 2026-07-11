@@ -12,6 +12,18 @@
   <script src="js/firebase-firestore.js"></script>
   <script src="js/firebase-db.js"></script>
   <script src="js/sync.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      var b = document.createElement('div');
+      b.style.cssText = 'position:fixed;bottom:6px;left:6px;z-index:99999;padding:5px 12px;border-radius:4px;font:bold 12px monospace;';
+      if (window.DPT_DB) {
+        b.style.background = '#16a34a'; b.style.color = '#fff'; b.textContent = 'FIREBASE OK';
+      } else {
+        b.style.background = '#ef4444'; b.style.color = '#fff'; b.textContent = 'FIREBASE MISSING';
+      }
+      document.body.appendChild(b);
+    });
+  </script>
   <style>
     :root {
       --y:   #F5A623;
