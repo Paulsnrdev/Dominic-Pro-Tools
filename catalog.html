@@ -604,7 +604,7 @@
     set: (k, v) => {
       localStorage.setItem(k, JSON.stringify(v));
       if (window.DPT_DB) {
-        window.DPT_DB.push(k, v).then(() => showSyncToast(true)).catch(() => showSyncToast(false));
+        window.DPT_DB.push(k, v).then(() => showSyncToast(true)).catch(function(e){ showSyncToast(false, e.message); });
       } else {
         showSyncToast(false, 'Firebase not loaded');
       }
