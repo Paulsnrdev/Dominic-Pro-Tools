@@ -465,20 +465,14 @@
         <input type="text" id="pName" placeholder="e.g. BOSCH 12V Cordless Drill" />
       </div>
       <input type="hidden" id="pIsBase" value="" />
-      <div class="field-row">
-        <div class="field">
-          <label>BRAND</label>
-          <input type="text" id="pBrand" placeholder="e.g. BOSCH" />
-        </div>
-        <div class="field">
-          <label>CATEGORY</label>
-          <select id="pCategory"></select>
-        </div>
+      <div class="field">
+        <label>BRAND</label>
+        <input type="text" id="pBrand" placeholder="e.g. BOSCH" />
       </div>
-      <div class="field" id="pMultiCatInfo" style="display:none">
-        <label>APPEARS IN ALL THESE CATEGORIES</label>
-        <p id="pMultiCatList" style="font-size:.78rem;color:var(--y);line-height:1.7;padding:.35rem 0;"></p>
-        <p style="font-size:.67rem;color:var(--g);">Any edits here (name, price, stock, image) will update this product in <strong style="color:var(--w)">all</strong> the categories listed above.</p>
+      <div class="field">
+        <label>CATEGORIES <span id="pCatNote" style="font-size:.6rem;font-weight:400;color:var(--g);letter-spacing:0"> — tick all that apply</span></label>
+        <div id="pCategoryCheckboxes" style="margin-top:.45rem;display:flex;flex-direction:column;gap:.32rem;max-height:150px;overflow-y:auto;padding:.15rem 0"></div>
+        <p id="pBaseProductNote" style="display:none;font-size:.67rem;color:var(--g);margin-top:.5rem">Base product — categories are fixed. Edits to name, price, stock or image apply across <strong style="color:var(--w)">all</strong> ticked categories.</p>
       </div>
       <div class="field-row">
         <div class="field">
@@ -866,11 +860,22 @@
   /* ══════════════════════════════════════════════════════════
      ADD / EDIT PRODUCT MODAL
   ══════════════════════════════════════════════════════════ */
-  function populateCatSelect(selectedId) {
-    const sel = document.getElementById('pCategory');
-    sel.innerHTML = getAllCats()
-      .map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.name}</option>`)
-      .join('');
+  function populateCatCheckboxes(selectedIds, disabled) {
+    const container = document.getElementById('pCategoryCheckboxes');
+    const baseNote  = document.getElementById('pBaseProductNote');
+    const catNote   = document.getElementById('pCatNote');
+    container.innerHTML = getAllCats().map(c => {
+      const checked  = selectedIds.includes(c.id) ? 'checked' : '';
+      const disAttr  = disabled ? 'disabled' : '';
+      const dimColor = (disabled && !selectedIds.includes(c.id)) ? 'var(--g)' : 'var(--w)';
+      return `<label style="display:flex;align-items:center;gap:.5rem;cursor:${disabled ? 'default' : 'pointer'};font-size:.8rem;color:${dimColor}">
+        <input type="checkbox" name="pCat" value="${c.id}" ${checked} ${disAttr}
+               style="width:14px;height:14px;accent-color:var(--y);flex-shrink:0;cursor:${disabled ? 'default' : 'pointer'}" />
+        ${c.name}
+      </label>`;
+    }).join('');
+    baseNote.style.display = disabled ? 'block' : 'none';
+    catNote.style.display  = disabled ? 'none'  : 'inline';
   }
 
   function openAddProd() {
@@ -885,10 +890,8 @@
     document.getElementById('pStock').value    = '10';
     document.getElementById('pImage').value    = '';
     document.getElementById('pActive').checked = true;
-    document.getElementById('pCategory').disabled = false;
-    document.getElementById('pMultiCatInfo').style.display = 'none';
     resetImgUpload('pImageFile', 'pImageFileName', 'pImagePreview');
-    populateCatSelect(activeCatId);
+    populateCatCheckboxes(activeCatId ? [activeCatId] : [], false);
     document.getElementById('productModal').style.display = 'flex';
   }
 
@@ -910,33 +913,14 @@
     resetImgUpload('pImageFile', 'pImageFileName', 'pImagePreview');
     if (p.image) showImgPreview('pImagePreviewImg', 'pImagePreview', p.image);
 
-    const cats    = p.categories || (p.category ? [p.category] : []);
-    const catSel  = document.getElementById('pCategory');
-    const infoEl  = document.getElementById('pMultiCatInfo');
-
-    if (isBase && cats.length > 1) {
-      const preferred = (activeCatId && cats.includes(activeCatId)) ? activeCatId : cats[0];
-      populateCatSelect(preferred);
-      catSel.disabled = true;
-      const catNames = cats.map(cid => {
-        const obj = getAllCats().find(c => c.id === cid);
-        return obj ? obj.name : cid;
-      });
-      infoEl.style.display = 'block';
-      document.getElementById('pMultiCatList').textContent = catNames.join(' · ');
-    } else {
-      catSel.disabled = false;
-      infoEl.style.display = 'none';
-      populateCatSelect(cats[0] || activeCatId);
-    }
+    const cats = p.categories || (p.category ? [p.category] : []);
+    populateCatCheckboxes(cats, isBase);
 
     document.getElementById('productModal').style.display = 'flex';
   }
 
   function closeProdModal() {
     document.getElementById('productModal').style.display = 'none';
-    document.getElementById('pCategory').disabled = false;
-    document.getElementById('pMultiCatInfo').style.display = 'none';
   }
   document.getElementById('prodModalClose').addEventListener('click', closeProdModal);
   document.getElementById('prodModalCancel').addEventListener('click', closeProdModal);
@@ -945,7 +929,6 @@
     const id       = document.getElementById('pEditId').value;
     const name     = document.getElementById('pName').value.trim();
     const brand    = document.getElementById('pBrand').value.trim();
-    const category = document.getElementById('pCategory').value;
     const price    = parseInt(document.getElementById('pPrice').value, 10) || 0;
     const oldPrice = parseInt(document.getElementById('pOldPrice').value, 10) || 0;
     const discount = parseInt(document.getElementById('pDiscount').value, 10) || 0;
@@ -955,29 +938,34 @@
 
     if (!name || !price) { alert('Name and price are required.'); return; }
 
-    const catObj = getAllCats().find(c => c.id === category);
-    const categoryLabel = catObj ? catObj.name.toUpperCase() : category.toUpperCase();
+    const categories = Array.from(
+      document.querySelectorAll('#pCategoryCheckboxes input[name="pCat"]:checked')
+    ).map(cb => cb.value);
+
+    if (!categories.length) { alert('Select at least one category.'); return; }
+
+    const primaryCat    = categories[0];
+    const catObj        = getAllCats().find(c => c.id === primaryCat);
+    const categoryLabel = catObj ? catObj.name.toUpperCase() : primaryCat.toUpperCase();
 
     if (!id) {
       const cu = getCustomProds();
-      cu.push({ id: Date.now(), name, brand, category, categoryLabel, price, oldPrice, discount, stock, image, active, _isBase: false });
+      cu.push({ id: Date.now(), name, brand, categories, categoryLabel, price, oldPrice, discount, stock, image, active, _isBase: false });
       LS.set('dpt_products_custom', cu);
     } else {
-      const numId = Number(id);
+      const numId  = Number(id);
       const isBase = window.DPT_BASE_PRODUCTS.some(p => p.id === numId);
       if (isBase) {
         const ov = getOverrides();
         if (!ov[numId]) ov[numId] = {};
-        // Strip stale single-category overrides so the base product's
-        // categories array (products-data.js) stays authoritative.
         delete ov[numId].category;
         delete ov[numId].categories;
         Object.assign(ov[numId], { name, brand, price, oldPrice, discount, stock, image, active });
         LS.set('dpt_product_overrides', ov);
       } else {
-        const cu = getCustomProds();
+        const cu  = getCustomProds();
         const idx = cu.findIndex(p => p.id == numId);
-        if (idx !== -1) Object.assign(cu[idx], { name, brand, category, categoryLabel, price, oldPrice, discount, stock, image, active });
+        if (idx !== -1) Object.assign(cu[idx], { name, brand, categories, categoryLabel, price, oldPrice, discount, stock, image, active });
         LS.set('dpt_products_custom', cu);
       }
     }
