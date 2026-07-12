@@ -870,7 +870,7 @@
       const dimColor = (disabled && !selectedIds.includes(c.id)) ? 'var(--g)' : 'var(--w)';
       return `<label style="display:flex;align-items:center;gap:.5rem;cursor:${disabled ? 'default' : 'pointer'};font-size:.8rem;color:${dimColor}">
         <input type="checkbox" name="pCat" value="${c.id}" ${checked} ${disAttr}
-               style="width:14px;height:14px;accent-color:var(--y);flex-shrink:0;cursor:${disabled ? 'default' : 'pointer'}" />
+               style="width:16px;height:16px;min-width:16px;padding:0;background:transparent;border:1.5px solid rgba(255,255,255,.3);appearance:auto;-webkit-appearance:checkbox;accent-color:var(--y);flex-shrink:0;cursor:${disabled ? 'default' : 'pointer'}" />
         ${c.name}
       </label>`;
     }).join('');
