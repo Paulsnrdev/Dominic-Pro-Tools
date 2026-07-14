@@ -75,6 +75,8 @@
             <option value="popular">SORT: MOST POPULAR</option>
             <option value="price-asc">PRICE: LOW TO HIGH</option>
             <option value="price-desc">PRICE: HIGH TO LOW</option>
+            <option value="name-asc">NAME: A–Z</option>
+            <option value="brand-asc">BRAND: A–Z</option>
             <option value="newest">NEWEST FIRST</option>
           </select>
           <i class="fa-solid fa-chevron-down sort-caret"></i>
@@ -275,6 +277,8 @@
           const oa = +a.dataset.order, ob = +b.dataset.order;
           if (val === 'price-asc')  return pa - pb;
           if (val === 'price-desc') return pb - pa;
+          if (val === 'name-asc')   return a.dataset.name.localeCompare(b.dataset.name);
+          if (val === 'brand-asc')  return a.dataset.brand.localeCompare(b.dataset.brand) || a.dataset.name.localeCompare(b.dataset.name);
           if (val === 'newest')     return ob - oa;
           return oa - ob;
         });
