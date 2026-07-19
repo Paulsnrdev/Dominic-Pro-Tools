@@ -11,7 +11,6 @@
   <script src="js/firebase-app.js"></script>
   <script src="js/firebase-firestore.js"></script>
   <script src="js/firebase-db.js"></script>
-  <script src="js/sync.js"></script>
   <style>
     :root {
       --y:   #F5A623;
@@ -508,7 +507,7 @@
       </div>
       <div class="field">
         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
-          <input type="checkbox" id="pActive" checked style="width:auto;accent-color:var(--y)" />
+          <input type="checkbox" id="pActive" checked style="width:16px;height:16px;min-width:16px;padding:0;background:transparent;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--y);flex-shrink:0" />
           PRODUCT ACTIVE (visible on site)
         </label>
       </div>
@@ -563,7 +562,18 @@
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminPanel').style.display  = 'block';
     init();
-    if (window.DPT_DB) { await window.DPT_DB.pull(); init(); }
+    if (window.DPT_DB) {
+      await window.DPT_DB.pull();
+      // Fix any nested-array corruption in custom products before re-rendering
+      const rawCu = LS.get('dpt_products_custom');
+      if (Array.isArray(rawCu)) {
+        const cleanCu = sanitizeCustomProds(rawCu);
+        if (JSON.stringify(cleanCu) !== JSON.stringify(rawCu)) {
+          LS.set('dpt_products_custom', cleanCu);
+        }
+      }
+      init();
+    }
   }
 
   document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -610,7 +620,22 @@
   };
 
   function getOverrides()  { return LS.get('dpt_product_overrides') || {}; }
-  function getCustomProds(){ return LS.get('dpt_products_custom')   || []; }
+
+  // Flatten any nested arrays in categories — Firestore forbids arrays inside arrays
+  function sanitizeCustomProds(arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(p => p && typeof p === 'object' && !Array.isArray(p)).map(p => {
+      if (!Array.isArray(p.categories)) return p;
+      const flat = [];
+      p.categories.forEach(c => {
+        if (Array.isArray(c)) c.forEach(cc => { if (typeof cc === 'string' && cc) flat.push(cc); });
+        else if (typeof c === 'string' && c) flat.push(c);
+      });
+      return Object.assign({}, p, { categories: flat });
+    });
+  }
+
+  function getCustomProds(){ return sanitizeCustomProds(LS.get('dpt_products_custom') || []); }
   function getCatOv()      { return LS.get('dpt_cat_overrides')     || {}; }
   function getCustomCats() { return LS.get('dpt_cats_custom')       || []; }
   function getSale()       { return LS.get('dpt_sale') || { enabled:false, discount:20, label:'Sale' }; }
