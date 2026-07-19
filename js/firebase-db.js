@@ -47,18 +47,25 @@
     },
 
     // Upload a File to Cloudinary and return its public URL.
+    // Uses XMLHttpRequest instead of fetch for reliable iOS Safari compatibility.
     uploadImage: function (file) {
-      var formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'dpt_uploads');
-      return fetch('https://api.cloudinary.com/v1_1/px2m3377/image/upload', {
-        method: 'POST',
-        body: formData,
-      }).then(function (res) {
-        return res.json();
-      }).then(function (data) {
-        if (data.error) throw new Error(data.error.message);
-        return data.secure_url;
+      return new Promise(function (resolve, reject) {
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'dpt_uploads');
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://api.cloudinary.com/v1_1/px2m3377/image/upload');
+        xhr.onload = function () {
+          try {
+            var data = JSON.parse(xhr.responseText);
+            if (data.error) { reject(new Error(data.error.message)); return; }
+            resolve(data.secure_url);
+          } catch (e) {
+            reject(new Error('Invalid response from Cloudinary'));
+          }
+        };
+        xhr.onerror = function () { reject(new Error('Network error — check your connection')); };
+        xhr.send(formData);
       });
     },
   };
