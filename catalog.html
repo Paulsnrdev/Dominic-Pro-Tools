@@ -336,6 +336,7 @@
     </div>
     <div class="header-right">
       <a href="admin.html" class="btn-hdr">Dashboard</a>
+      <button class="btn-hdr" id="repairBtn">Repair Sync</button>
       <button class="btn-hdr" id="logoutBtn">Logout</button>
     </div>
   </header>
@@ -564,14 +565,7 @@
     init();
     if (window.DPT_DB) {
       await window.DPT_DB.pull();
-      // Fix any nested-array corruption in custom products before re-rendering
-      const rawCu = LS.get('dpt_products_custom');
-      if (Array.isArray(rawCu)) {
-        const cleanCu = sanitizeCustomProds(rawCu);
-        if (JSON.stringify(cleanCu) !== JSON.stringify(rawCu)) {
-          LS.set('dpt_products_custom', cleanCu);
-        }
-      }
+      await repairFirestore();
       init();
     }
   }
@@ -579,6 +573,16 @@
   document.getElementById('logoutBtn').addEventListener('click', () => {
     sessionStorage.removeItem(AUTH_KEY);
     location.reload();
+  });
+
+  document.getElementById('repairBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('repairBtn');
+    btn.textContent = 'Repairing…';
+    btn.disabled = true;
+    await repairFirestore();
+    showSyncToast(true, 'Cloud data repaired');
+    btn.textContent = 'Repair Sync';
+    btn.disabled = false;
   });
 
   /* ══════════════════════════════════════════════════════════
@@ -621,18 +625,39 @@
 
   function getOverrides()  { return LS.get('dpt_product_overrides') || {}; }
 
-  // Flatten any nested arrays in categories — Firestore forbids arrays inside arrays
+  // Recursively eliminate array-within-array from any Firestore value (Firestore forbids nested arrays)
+  function deepFirestoreSafe(val) {
+    if (Array.isArray(val)) {
+      const out = [];
+      val.forEach(item => {
+        if (Array.isArray(item)) item.forEach(x => { if (!Array.isArray(x)) out.push(deepFirestoreSafe(x)); });
+        else out.push(deepFirestoreSafe(item));
+      });
+      return out;
+    }
+    if (val && typeof val === 'object') {
+      const out = {};
+      Object.keys(val).forEach(k => { out[k] = deepFirestoreSafe(val[k]); });
+      return out;
+    }
+    return val;
+  }
+
   function sanitizeCustomProds(arr) {
     if (!Array.isArray(arr)) return [];
-    return arr.filter(p => p && typeof p === 'object' && !Array.isArray(p)).map(p => {
-      if (!Array.isArray(p.categories)) return p;
-      const flat = [];
-      p.categories.forEach(c => {
-        if (Array.isArray(c)) c.forEach(cc => { if (typeof cc === 'string' && cc) flat.push(cc); });
-        else if (typeof c === 'string' && c) flat.push(c);
-      });
-      return Object.assign({}, p, { categories: flat });
-    });
+    return deepFirestoreSafe(arr).filter(p => p && typeof p === 'object' && !Array.isArray(p));
+  }
+
+  // Force-push sanitized custom products to Firestore; called on login and by Repair Sync button
+  async function repairFirestore() {
+    if (!window.DPT_DB) return;
+    const cleanCu = sanitizeCustomProds(LS.get('dpt_products_custom') || []);
+    localStorage.setItem('dpt_products_custom', JSON.stringify(cleanCu));
+    try {
+      await window.DPT_DB.push('dpt_products_custom', cleanCu);
+    } catch(e) {
+      showSyncToast(false, 'Repair failed: ' + e.message);
+    }
   }
 
   function getCustomProds(){ return sanitizeCustomProds(LS.get('dpt_products_custom') || []); }
