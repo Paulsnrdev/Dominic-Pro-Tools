@@ -579,10 +579,15 @@
     const btn = document.getElementById('repairBtn');
     btn.textContent = 'Repairing…';
     btn.disabled = true;
-    await repairFirestore();
-    showSyncToast(true, 'Cloud data repaired');
-    btn.textContent = 'Repair Sync';
-    btn.disabled = false;
+    try {
+      await repairFirestore();
+      showSyncToast(true, 'Cloud data repaired');
+    } catch(e) {
+      showSyncToast(false, 'Repair failed: ' + e.message);
+    } finally {
+      btn.textContent = 'Repair Sync';
+      btn.disabled = false;
+    }
   });
 
   /* ══════════════════════════════════════════════════════════
@@ -616,7 +621,7 @@
       localStorage.setItem(k, JSON.stringify(v));
       if (window.DPT_DB) {
         // Strip base64 images before Firestore push — they bloat the document over the 1 MB limit
-        const fsVal = k === 'dpt_products_custom' ? stripBase64ForFirestore(v) : v;
+        const fsVal = k === 'dpt_products_custom' ? prepareForFirestore(v) : v;
         window.DPT_DB.push(k, fsVal).then(() => showSyncToast(true)).catch(function(e){ showSyncToast(false, e.message); });
       } else {
         showSyncToast(false, 'Firebase not loaded');
@@ -650,25 +655,32 @@
     return deepFirestoreSafe(arr).filter(p => p && typeof p === 'object' && !Array.isArray(p));
   }
 
-  // Replace base64 data URLs in the image field with '' before Firestore push —
-  // base64 images can be 500 KB+ each and blow Firestore's 1 MB document limit.
-  // The original base64 stays in localStorage so the current device still displays it.
-  function stripBase64ForFirestore(arr) {
-    if (!Array.isArray(arr)) return arr;
-    return arr.map(p => {
-      if (p && typeof p.image === 'string' && p.image.startsWith('data:')) {
-        return Object.assign({}, p, { image: '' });
-      }
-      return p;
+  // Strip any string field over 1000 chars before Firestore push.
+  // Legitimate product fields (name, brand, image URL/path) are all under 200 chars.
+  // Base64 images are 50 000+ chars — this catches them regardless of prefix or field name.
+  // Also deduplicates products by id, keeping the last saved version of each.
+  function prepareForFirestore(arr) {
+    if (!Array.isArray(arr)) return [];
+    const byId = {};
+    arr.forEach(p => { if (p && p.id != null) byId[p.id] = p; });
+    return Object.values(byId).map(p => {
+      const clean = {};
+      Object.keys(p).forEach(k => {
+        const v = p[k];
+        clean[k] = (typeof v === 'string' && v.length > 1000) ? '' : v;
+      });
+      return clean;
     });
   }
 
-  // Force-push sanitized, base64-stripped custom products to Firestore
+  // Force-push sanitized, bloat-free custom products to Firestore
   async function repairFirestore() {
     if (!window.DPT_DB) return;
-    const cleanCu = sanitizeCustomProds(LS.get('dpt_products_custom') || []);
-    localStorage.setItem('dpt_products_custom', JSON.stringify(cleanCu));
-    const fsCu = stripBase64ForFirestore(cleanCu);
+    const rawCu  = LS.get('dpt_products_custom') || [];
+    const cleanCu = sanitizeCustomProds(rawCu);
+    const fsCu    = prepareForFirestore(cleanCu);
+    // Also clean localStorage so large strings don't persist there either
+    localStorage.setItem('dpt_products_custom', JSON.stringify(fsCu));
     try {
       await window.DPT_DB.push('dpt_products_custom', fsCu);
     } catch(e) {
