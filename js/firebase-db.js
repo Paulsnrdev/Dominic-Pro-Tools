@@ -11,8 +11,7 @@
     });
   }
 
-  var db      = firebase.firestore();
-  var storage = firebase.storage();
+  var db = firebase.firestore();
 
   var KEY_MAP = {
     dpt_product_overrides: { docId: 'product_overrides', list: false },
@@ -47,14 +46,19 @@
       await dRef(cfg.docId).set(cfg.list ? { list: value } : value);
     },
 
-    // Upload a File to Firebase Storage and return its public download URL.
-    // folder: 'products' or 'categories'
-    uploadImage: function (file, folder) {
-      var ext      = file.name.split('.').pop().toLowerCase();
-      var filename = Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext;
-      var ref      = storage.ref((folder || 'products') + '/' + filename);
-      return ref.put(file).then(function (snapshot) {
-        return snapshot.ref.getDownloadURL();
+    // Upload a File to Cloudinary and return its public URL.
+    uploadImage: function (file) {
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'dpt_uploads');
+      return fetch('https://api.cloudinary.com/v1_1/px2m3377/image/upload', {
+        method: 'POST',
+        body: formData,
+      }).then(function (res) {
+        return res.json();
+      }).then(function (data) {
+        if (data.error) throw new Error(data.error.message);
+        return data.secure_url;
       });
     },
   };
