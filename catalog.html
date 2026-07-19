@@ -615,7 +615,9 @@
     set: (k, v) => {
       localStorage.setItem(k, JSON.stringify(v));
       if (window.DPT_DB) {
-        window.DPT_DB.push(k, v).then(() => showSyncToast(true)).catch(function(e){ showSyncToast(false, e.message); });
+        // Strip base64 images before Firestore push — they bloat the document over the 1 MB limit
+        const fsVal = k === 'dpt_products_custom' ? stripBase64ForFirestore(v) : v;
+        window.DPT_DB.push(k, fsVal).then(() => showSyncToast(true)).catch(function(e){ showSyncToast(false, e.message); });
       } else {
         showSyncToast(false, 'Firebase not loaded');
       }
@@ -648,13 +650,27 @@
     return deepFirestoreSafe(arr).filter(p => p && typeof p === 'object' && !Array.isArray(p));
   }
 
-  // Force-push sanitized custom products to Firestore; called on login and by Repair Sync button
+  // Replace base64 data URLs in the image field with '' before Firestore push —
+  // base64 images can be 500 KB+ each and blow Firestore's 1 MB document limit.
+  // The original base64 stays in localStorage so the current device still displays it.
+  function stripBase64ForFirestore(arr) {
+    if (!Array.isArray(arr)) return arr;
+    return arr.map(p => {
+      if (p && typeof p.image === 'string' && p.image.startsWith('data:')) {
+        return Object.assign({}, p, { image: '' });
+      }
+      return p;
+    });
+  }
+
+  // Force-push sanitized, base64-stripped custom products to Firestore
   async function repairFirestore() {
     if (!window.DPT_DB) return;
     const cleanCu = sanitizeCustomProds(LS.get('dpt_products_custom') || []);
     localStorage.setItem('dpt_products_custom', JSON.stringify(cleanCu));
+    const fsCu = stripBase64ForFirestore(cleanCu);
     try {
-      await window.DPT_DB.push('dpt_products_custom', cleanCu);
+      await window.DPT_DB.push('dpt_products_custom', fsCu);
     } catch(e) {
       showSyncToast(false, 'Repair failed: ' + e.message);
     }
