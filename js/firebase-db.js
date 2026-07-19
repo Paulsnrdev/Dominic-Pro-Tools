@@ -11,7 +11,8 @@
     });
   }
 
-  var db = firebase.firestore();
+  var db      = firebase.firestore();
+  var storage = firebase.storage();
 
   var KEY_MAP = {
     dpt_product_overrides: { docId: 'product_overrides', list: false },
@@ -44,6 +45,17 @@
       var cfg = KEY_MAP[lsKey];
       if (!cfg) return;
       await dRef(cfg.docId).set(cfg.list ? { list: value } : value);
+    },
+
+    // Upload a File to Firebase Storage and return its public download URL.
+    // folder: 'products' or 'categories'
+    uploadImage: function (file, folder) {
+      var ext      = file.name.split('.').pop().toLowerCase();
+      var filename = Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext;
+      var ref      = storage.ref((folder || 'products') + '/' + filename);
+      return ref.put(file).then(function (snapshot) {
+        return snapshot.ref.getDownloadURL();
+      });
     },
   };
 })();
