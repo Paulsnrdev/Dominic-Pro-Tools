@@ -238,6 +238,22 @@
         return el;
       }
 
+      /* ── Inject tabs for custom categories ────────────────── */
+      const customCats = JSON.parse(localStorage.getItem('dpt_cats_custom') || '[]');
+      if (customCats.length) {
+        const tabsContainer   = document.querySelector('.category-tabs');
+        const existingFilters = new Set([...tabsContainer.querySelectorAll('.cat-tab')].map(t => t.dataset.filter));
+        customCats.forEach(cat => {
+          if (cat.id && !existingFilters.has(cat.id)) {
+            const btn = document.createElement('button');
+            btn.className      = 'cat-tab';
+            btn.dataset.filter = cat.id;
+            btn.textContent    = (cat.name || cat.id).toUpperCase();
+            tabsContainer.appendChild(btn);
+          }
+        });
+      }
+
       /* ── Render products into grid ─────────────────────────── */
       const grid    = document.getElementById('productsGrid');
       const countEl = document.getElementById('productCount');
