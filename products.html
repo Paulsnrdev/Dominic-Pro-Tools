@@ -10,6 +10,128 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Product Quick-View Modal ─────────────────────────── */
+    .pq-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.72);
+      z-index: 1500;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity .22s;
+    }
+    .pq-overlay.open { opacity: 1; pointer-events: all; }
+
+    .pq-modal {
+      background: #fff;
+      border-radius: 14px;
+      width: 100%; max-width: 820px;
+      max-height: 92vh;
+      overflow-y: auto;
+      position: relative;
+      transform: scale(.95);
+      transition: transform .22s;
+    }
+    .pq-overlay.open .pq-modal { transform: scale(1); }
+
+    .pq-close {
+      position: absolute; top: .9rem; right: 1rem;
+      background: none; border: none;
+      font-size: 2rem; line-height: 1;
+      color: #94a3b8; cursor: pointer; z-index: 2;
+      padding: .1rem .4rem;
+    }
+    .pq-close:hover { color: #1a1a2e; }
+
+    .pq-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .pq-img-side {
+      background: linear-gradient(145deg, #f8f9fc 0%, #eef1f8 100%);
+      border-radius: 14px 0 0 14px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2.5rem 2rem;
+      min-height: 360px;
+    }
+    .pq-img-side img { max-width: 100%; max-height: 360px; object-fit: contain; display: block; }
+    .pq-img-placeholder {
+      font-size: 5rem; color: #d1d5db;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%; min-height: 200px;
+    }
+
+    .pq-detail-side {
+      padding: 2rem 2rem 2rem 1.75rem;
+      display: flex; flex-direction: column; gap: .55rem;
+    }
+
+    .pq-brand-tag {
+      display: inline-block;
+      background: #c49a1e; color: #1a1a2e;
+      font-size: .65rem; font-weight: 800;
+      letter-spacing: .07em; padding: .25rem .65rem;
+      align-self: flex-start;
+    }
+    .pq-brand-tag.generic { background: #1a1a2e; color: #fff; }
+
+    .pq-cat-label {
+      font-size: .65rem; font-weight: 700;
+      color: #64748b; letter-spacing: .1em; text-transform: uppercase;
+    }
+
+    .pq-detail-side h2 {
+      font-size: 1.2rem; font-weight: 800;
+      color: #1a1a2e; line-height: 1.35; margin: .25rem 0 0;
+    }
+
+    .pq-pricing {
+      display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+      margin: .5rem 0 .25rem;
+    }
+    .pq-price-current { font-size: 1.55rem; font-weight: 900; color: #1a1a2e; }
+    .pq-price-old     { font-size: .95rem; color: #94a3b8; text-decoration: line-through; }
+    .pq-disc-badge {
+      background: #1a1a2e; color: #fff;
+      font-size: .65rem; font-weight: 700;
+      padding: .2rem .5rem;
+    }
+
+    .pq-add-btn { margin-top: .75rem; }
+
+    .pq-wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      background: #25d366; color: #fff;
+      padding: .85rem;
+      font-family: inherit; font-size: .78rem; font-weight: 700;
+      letter-spacing: .08em; text-decoration: none;
+      transition: background .2s; margin-top: .4rem;
+    }
+    .pq-wa-btn:hover { background: #128c4f; color: #fff; }
+
+    /* Quick-view hint overlay on image hover */
+    .product-img-wrapper { cursor: pointer; }
+    .product-img-wrapper::after {
+      content: 'QUICK VIEW';
+      position: absolute; inset: 0;
+      background: rgba(26,26,46,.6);
+      color: #fff; font-size: .72rem;
+      font-weight: 800; letter-spacing: .12em;
+      font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s;
+    }
+    .product-card-item:hover .product-img-wrapper::after { opacity: 1; }
+
+    @media (max-width: 640px) {
+      .pq-body { grid-template-columns: 1fr; }
+      .pq-img-side { border-radius: 14px 14px 0 0; min-height: 220px; padding: 1.5rem; }
+      .pq-detail-side { padding: 1.25rem; }
+      .pq-detail-side h2 { font-size: 1rem; }
+      .pq-price-current { font-size: 1.3rem; }
+    }
+  </style>
   <script src="js/firebase-app.js"></script>
   <script src="js/firebase-firestore.js"></script>
   <!-- Product data must load before the inline script -->
@@ -174,6 +296,37 @@
     </div>
   </footer>
 
+  <!-- Product Quick-View Modal -->
+  <div id="pqOverlay" class="pq-overlay" role="dialog" aria-modal="true">
+    <div class="pq-modal">
+      <button class="pq-close" id="pqClose" aria-label="Close">&times;</button>
+      <div class="pq-body">
+        <div class="pq-img-side">
+          <img id="pqImg" src="" alt="" />
+          <div id="pqImgPh" class="pq-img-placeholder" style="display:none">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+          </div>
+        </div>
+        <div class="pq-detail-side">
+          <span id="pqBrand" class="pq-brand-tag"></span>
+          <span id="pqCat"   class="pq-cat-label"></span>
+          <h2 id="pqName"></h2>
+          <div class="pq-pricing">
+            <span id="pqPrice"   class="pq-price-current"></span>
+            <span id="pqOldP"    class="pq-price-old"  style="display:none"></span>
+            <span id="pqDisc"    class="pq-disc-badge" style="display:none"></span>
+          </div>
+          <button class="btn-add-cart pq-add-btn" id="pqAddBtn">
+            <i class="fa-solid fa-cart-shopping"></i> ADD TO CART
+          </button>
+          <a id="pqWA" class="pq-wa-btn" href="#" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> ORDER VIA WHATSAPP
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/script.js"></script>
   <!-- Paystack inline JS SDK -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
@@ -313,6 +466,99 @@
 
       search.addEventListener('input', filterAndCount);
       sort.addEventListener('change', sortAndFilter);
+
+      /* ── Product Quick-View Modal ────────────────────────── */
+      const pqOverlay = document.getElementById('pqOverlay');
+      const pqClose   = document.getElementById('pqClose');
+      const pqImg     = document.getElementById('pqImg');
+      const pqImgPh   = document.getElementById('pqImgPh');
+      const pqBrand   = document.getElementById('pqBrand');
+      const pqCat     = document.getElementById('pqCat');
+      const pqName    = document.getElementById('pqName');
+      const pqPrice   = document.getElementById('pqPrice');
+      const pqOldP    = document.getElementById('pqOldP');
+      const pqDisc    = document.getElementById('pqDisc');
+      const pqAddBtn  = document.getElementById('pqAddBtn');
+      const pqWA      = document.getElementById('pqWA');
+      let   activeCard = null;
+
+      function openPQ(card) {
+        activeCard = card;
+        const imgEl   = card.querySelector('img');
+        const h4      = card.querySelector('h4');
+        const priceEl = card.querySelector('.price-current');
+        const oldPEl  = card.querySelector('.price-old');
+        const discEl  = card.querySelector('.discount-badge');
+        const catEl   = card.querySelector('.product-category');
+        const brandEl = card.querySelector('.brand-tag');
+
+        // image
+        if (imgEl && imgEl.style.display !== 'none') {
+          pqImg.src = imgEl.src; pqImg.alt = imgEl.alt;
+          pqImg.style.display = ''; pqImgPh.style.display = 'none';
+          pqImg.onerror = function () { this.style.display = 'none'; pqImgPh.style.display = 'flex'; };
+        } else {
+          pqImg.style.display = 'none'; pqImgPh.style.display = 'flex';
+        }
+
+        // brand
+        const brandText = brandEl ? brandEl.textContent.trim() : '';
+        pqBrand.textContent = brandText;
+        pqBrand.className = 'pq-brand-tag' + (brandEl && brandEl.classList.contains('brand-generic') ? ' generic' : '');
+
+        pqCat.textContent   = catEl   ? catEl.textContent.trim()   : '';
+        pqName.textContent  = h4      ? h4.textContent.trim()      : '';
+        pqPrice.textContent = priceEl ? priceEl.textContent.trim()  : '';
+
+        if (oldPEl && oldPEl.textContent.trim()) {
+          pqOldP.textContent = oldPEl.textContent.trim(); pqOldP.style.display = '';
+        } else { pqOldP.textContent = ''; pqOldP.style.display = 'none'; }
+
+        if (discEl) {
+          pqDisc.textContent = discEl.textContent.trim(); pqDisc.style.display = '';
+        } else { pqDisc.textContent = ''; pqDisc.style.display = 'none'; }
+
+        // WhatsApp link
+        const name  = h4      ? h4.textContent.trim()     : 'a product';
+        const price = priceEl ? priceEl.textContent.trim() : '';
+        const waMsg = `Hi Dominic Pro Tools! I'm interested in ${name}${price ? ' ('+price+')' : ''}. Could you assist me with availability?`;
+        pqWA.href = `https://wa.me/2348135482358?text=${encodeURIComponent(waMsg)}`;
+
+        // reset button state
+        pqAddBtn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> ADD TO CART';
+        pqAddBtn.style.background = ''; pqAddBtn.disabled = false;
+
+        pqOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closePQ() {
+        pqOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+        activeCard = null;
+      }
+
+      // Click anywhere on card (except Add to Cart) → open modal
+      grid.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-add-cart')) return;
+        const card = e.target.closest('.product-card-item');
+        if (card) openPQ(card);
+      });
+
+      pqClose.addEventListener('click', closePQ);
+      pqOverlay.addEventListener('click', function (e) { if (e.target === pqOverlay) closePQ(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePQ(); });
+
+      pqAddBtn.addEventListener('click', function () {
+        if (!activeCard) return;
+        activeCard.querySelector('.btn-add-cart').click();
+        pqAddBtn.innerHTML = '<i class="fa-solid fa-check"></i> ADDED';
+        pqAddBtn.style.background = '#16a34a'; pqAddBtn.disabled = true;
+        setTimeout(() => {
+          pqAddBtn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> ADD TO CART';
+          pqAddBtn.style.background = ''; pqAddBtn.disabled = false;
+        }, 1600);
+      });
     })();
   </script>
 
