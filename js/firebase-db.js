@@ -19,6 +19,7 @@
     dpt_cat_overrides:     { docId: 'cat_overrides',     list: false },
     dpt_cats_custom:       { docId: 'cats_custom',       list: true  },
     dpt_sale:              { docId: 'sale',               list: false },
+    dpt_orders:            { docId: 'orders',             list: true  },
   };
 
   function dRef(docId) { return db.collection('dpt_data').doc(docId); }

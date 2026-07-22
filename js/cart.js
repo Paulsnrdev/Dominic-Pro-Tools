@@ -421,6 +421,7 @@
       ref
     });
     localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    if (window.DPT_DB) window.DPT_DB.push('dpt_orders', orders).catch(console.warn);
 
     const overrides = JSON.parse(localStorage.getItem('dpt_product_overrides') || '{}');
     const base = window.DPT_BASE_PRODUCTS || [];

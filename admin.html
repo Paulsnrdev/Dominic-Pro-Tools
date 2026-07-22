@@ -420,6 +420,7 @@
       if (idx === -1) return;
       orders[idx].status = newStatus;
       localStorage.setItem('dpt_orders', JSON.stringify(orders));
+      if (window.DPT_DB) window.DPT_DB.push('dpt_orders', orders).catch(console.warn);
       loadOrders();
       loadDashboard();
     }
@@ -459,6 +460,7 @@
     document.getElementById('clearOrdersBtn').addEventListener('click', () => {
       if (confirm('Clear ALL order records? This cannot be undone.')) {
         localStorage.removeItem('dpt_orders');
+        if (window.DPT_DB) window.DPT_DB.push('dpt_orders', []).catch(console.warn);
         loadOrders();
         loadDashboard();
       }
@@ -468,6 +470,7 @@
       if (!confirm('Delete this order? This cannot be undone.')) return;
       const orders = getOrders().filter(o => o.id !== orderId);
       localStorage.setItem('dpt_orders', JSON.stringify(orders));
+      if (window.DPT_DB) window.DPT_DB.push('dpt_orders', orders).catch(console.warn);
       loadOrders();
       loadDashboard();
     }
@@ -581,6 +584,7 @@
           await Promise.all([
             window.DPT_DB.push('dpt_product_overrides', {}),
             window.DPT_DB.push('dpt_products_custom', []),
+            window.DPT_DB.push('dpt_orders', []),
           ]);
         }
         alert('All data cleared.');
