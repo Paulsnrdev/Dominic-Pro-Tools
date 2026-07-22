@@ -395,7 +395,7 @@
       tbody.innerHTML = orders.slice(0, 6).map(o => `
         <tr>
           <td><span class="tracking-chip">${o.trackingId || '—'}</span></td>
-          <td class="col-date">${new Date(o.date).toLocaleDateString()}</td>
+          <td class="col-date" style="white-space:nowrap">${new Date(o.date).toLocaleString()}</td>
           <td>${o.customer.name}</td>
           <td class="col-items">${o.items.length} item(s)</td>
           <td><strong>${fmt(o.total)}</strong></td>
