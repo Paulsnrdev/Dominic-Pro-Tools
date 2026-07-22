@@ -21,8 +21,9 @@
     return id;
   }
 
-  let cart            = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-  let pendingCustomer = null;
+  let cart               = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  let pendingCustomer    = null;
+  let pendingOrderTrackId = null;
 
   function saveCart()  { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
   function fmt(n)      { return '₦' + Number(n).toLocaleString(); }
@@ -339,6 +340,9 @@
     btn.disabled    = false;
     btn.textContent = 'PLACE ORDER →';
 
+    // Record order NOW so admin sees it before payment
+    pendingOrderTrackId = recordOrder(pendingCustomer, null, 'Awaiting Payment');
+
     // Show payment options view
     document.getElementById('payAmt').textContent  = total.toLocaleString();
     document.getElementById('opayAmt').textContent = total.toLocaleString();
@@ -363,12 +367,12 @@
         ]
       },
       callback: function (resp) {
-        const trkId = recordOrder(pendingCustomer, resp.reference, 'Confirmed');
+        updateOrderStatus(pendingOrderTrackId, 'Confirmed', resp.reference);
         cart = []; saveCart(); syncCount();
         closeCheckout();
-        document.getElementById('orderTrackId').textContent = trkId;
+        document.getElementById('orderTrackId').textContent = pendingOrderTrackId;
         document.getElementById('orderRef').textContent = 'Payment ref: ' + resp.reference;
-        document.getElementById('orderTrackLink').href = 'track-order.html?id=' + trkId;
+        document.getElementById('orderTrackLink').href = 'track-order.html?id=' + pendingOrderTrackId;
         showSuccessBanner();
       },
       onClose: function () {}
@@ -383,12 +387,12 @@
   });
 
   document.getElementById('opayConfirmBtn').addEventListener('click', () => {
-    const trkId = recordOrder(pendingCustomer, 'OPAY_' + Date.now(), 'Awaiting Payment');
+    updateOrderStatus(pendingOrderTrackId, 'Awaiting Payment', 'OPAY_' + Date.now());
     cart = []; saveCart(); syncCount();
     closeCheckout();
-    document.getElementById('orderTrackId').textContent = trkId;
+    document.getElementById('orderTrackId').textContent = pendingOrderTrackId;
     document.getElementById('orderRef').textContent = 'Pending payment verification by seller.';
-    document.getElementById('orderTrackLink').href = 'track-order.html?id=' + trkId;
+    document.getElementById('orderTrackLink').href = 'track-order.html?id=' + pendingOrderTrackId;
     showSuccessBanner();
   });
 
@@ -434,6 +438,16 @@
     });
     localStorage.setItem('dpt_product_overrides', JSON.stringify(overrides));
     return trackingId;
+  }
+
+  function updateOrderStatus(trackingId, status, ref) {
+    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    const order  = orders.find(o => o.trackingId === trackingId);
+    if (!order) return;
+    order.status = status;
+    if (ref) order.ref = ref;
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    if (window.DPT_DB) window.DPT_DB.push('dpt_orders', orders).catch(console.warn);
   }
 
   // ── Init ─────────────────────────────────────────────────────
