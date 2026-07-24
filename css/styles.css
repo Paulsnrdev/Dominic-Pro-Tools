@@ -1716,14 +1716,15 @@ body {
   display: block; font-size: .67rem; font-weight: 700;
   letter-spacing: .1em; color: var(--dark); margin-bottom: .4rem;
 }
-.co-field input, .co-field textarea {
+.co-field input, .co-field textarea, .co-field select {
   width: 100%; padding: .8rem 1rem;
   border: 1.5px solid var(--border);
   font-family: var(--font); font-size: .9rem; color: var(--dark);
-  outline: none; transition: border-color .2s;
+  outline: none; transition: border-color .2s; background: var(--white);
 }
-.co-field input:focus, .co-field textarea:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(196,154,30,.12); }
+.co-field input:focus, .co-field textarea:focus, .co-field select:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(196,154,30,.12); }
 .co-field textarea { min-height: 72px; resize: vertical; }
+.co-sum-delivery { color: var(--gray); font-size: .8rem; }
 
 .btn-pay {
   width: 100%; padding: 1.1rem;

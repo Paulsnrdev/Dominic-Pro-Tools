@@ -8,6 +8,14 @@
   const PAYSTACK_KEY = 'pk_live_b74b82c0db73ab70dbf11a1ab50b98e6c22f6310';
   const FORMSPREE    = 'https://formspree.io/f/mqevndzq';
 
+  const DELIVERY_ZONES = {
+    pickup:    { label: 'Self Pickup',                                      fee: 0    },
+    ibadan:    { label: 'Within Ibadan',                                    fee: 2000 },
+    lagos:     { label: 'Lagos State',                                      fee: 4000 },
+    southwest: { label: 'South West (Abeokuta, Osun, Ekiti, Ondo)',         fee: 4500 },
+    other:     { label: 'Other Nigerian States / Outside Nigeria',          fee: null },
+  };
+
   function generateTrackingId() {
     const year = new Date().getFullYear();
     const existing = new Set(
@@ -25,10 +33,17 @@
   let pendingCustomer    = null;
   let pendingOrderTrackId = null;
 
-  function saveCart()  { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
-  function fmt(n)      { return '₦' + Number(n).toLocaleString(); }
-  function cartTotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
-  function totalQty()  { return cart.reduce((s, i) => s + i.qty, 0); }
+  function saveCart()    { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+  function fmt(n)        { return '₦' + Number(n).toLocaleString(); }
+  function cartTotal()   { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
+  function totalQty()    { return cart.reduce((s, i) => s + i.qty, 0); }
+  function deliveryFee() {
+    const sel = document.getElementById('coDeliveryZone');
+    if (!sel || !sel.value) return 0;
+    const zone = DELIVERY_ZONES[sel.value];
+    return zone ? (zone.fee || 0) : 0;
+  }
+  function grandTotal()  { return cartTotal() + deliveryFee(); }
 
   // ── Inject HTML ──────────────────────────────────────────────
   document.body.insertAdjacentHTML('beforeend', `
@@ -80,6 +95,17 @@
             <div class="co-field">
               <label>PHONE NUMBER</label>
               <input type="tel" id="coPhone" placeholder="+234 800 000 0000" required />
+            </div>
+            <div class="co-field">
+              <label>DELIVERY ZONE <span style="color:#e11d48">*</span></label>
+              <select id="coDeliveryZone" required>
+                <option value="">— Select your delivery zone —</option>
+                <option value="pickup">Self Pickup — Free</option>
+                <option value="ibadan">Within Ibadan — ₦2,000</option>
+                <option value="lagos">Lagos State — ₦4,000</option>
+                <option value="southwest">South West (Abeokuta, Osun, Ekiti, Ondo) — ₦4,500</option>
+                <option value="other">Other Nigerian States / Outside Nigeria — Price TBA</option>
+              </select>
             </div>
             <div class="co-field">
               <label>DELIVERY ADDRESS</label>
@@ -165,9 +191,6 @@
   function openCheckout() {
     closeCart();
     renderSummary();
-    const total = cartTotal();
-    document.getElementById('payAmt').textContent  = total.toLocaleString();
-    document.getElementById('opayAmt').textContent = total.toLocaleString();
     resetToFormView();
     document.getElementById('coOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -223,7 +246,13 @@
 
   // ── Render checkout summary ──────────────────────────────────
   function renderSummary() {
-    const total = cartTotal();
+    const sub  = cartTotal();
+    const sel  = document.getElementById('coDeliveryZone');
+    const zone = sel && sel.value ? DELIVERY_ZONES[sel.value] : null;
+    const fee  = zone ? zone.fee : null;
+    const feeLabel = !zone ? '—' : fee === null ? 'TBA' : fee === 0 ? 'Free' : fmt(fee);
+    const totalLabel = !zone ? fmt(sub) : fee === null ? fmt(sub) + ' + TBA' : fmt(sub + fee);
+
     document.getElementById('coSummary').innerHTML = `
       <p class="co-sum-hd">ORDER SUMMARY</p>
       ${cart.map(i => `
@@ -232,9 +261,15 @@
           <span>${fmt(i.price * i.qty)}</span>
         </div>
       `).join('')}
+      <div class="co-sum-row co-sum-delivery">
+        <span>Subtotal</span><span>${fmt(sub)}</span>
+      </div>
+      <div class="co-sum-row co-sum-delivery">
+        <span>Delivery</span><span>${feeLabel}</span>
+      </div>
       <div class="co-sum-total">
         <span>TOTAL</span>
-        <span>${fmt(total)}</span>
+        <span>${totalLabel}</span>
       </div>
     `;
   }
@@ -285,6 +320,7 @@
   document.getElementById('coOverlay').addEventListener('click', e => {
     if (e.target === document.getElementById('coOverlay')) closeCheckout();
   });
+  document.getElementById('coDeliveryZone').addEventListener('change', renderSummary);
 
   document.getElementById('cartList').addEventListener('click', e => {
     const btn = e.target.closest('[data-i]');
@@ -302,18 +338,24 @@
     const name    = document.getElementById('coName').value.trim();
     const email   = document.getElementById('coEmail').value.trim();
     const phone   = document.getElementById('coPhone').value.trim();
+    const zoneKey = document.getElementById('coDeliveryZone').value;
     const address = document.getElementById('coAddress').value.trim();
-    if (!name || !email || !phone || !address) {
-      alert('Please fill in all fields.'); return;
+    if (!name || !email || !phone || !zoneKey || !address) {
+      alert('Please fill in all fields including delivery zone.'); return;
     }
 
-    pendingCustomer = { name, email, phone, address };
+    const zoneInfo  = DELIVERY_ZONES[zoneKey];
+    const fee       = zoneInfo.fee;                          // null = TBA
+    const subtotal  = cartTotal();
+    const grand     = subtotal + (fee || 0);
+    const feeStr    = fee === null ? 'TBA — seller will confirm' : fee === 0 ? 'Free' : `₦${fee.toLocaleString()}`;
+
+    pendingCustomer = { name, email, phone, address, zoneLabel: zoneInfo.label, deliveryFee: fee, grandTotal: grand };
 
     const btn = document.getElementById('placeOrderBtn');
     btn.disabled    = true;
     btn.textContent = 'Placing Order…';
 
-    const total     = cartTotal();
     const itemsList = cart.map(i =>
       `${i.name} x${i.qty}  —  ₦${(i.price * i.qty).toLocaleString()}`
     ).join('\n');
@@ -323,13 +365,16 @@
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          _subject:         `New Order — ${name} — ₦${total.toLocaleString()}`,
+          _subject:         `New Order — ${name} — ₦${grand.toLocaleString()}`,
           customer_name:    name,
           customer_email:   email,
           customer_phone:   phone,
+          delivery_zone:    zoneInfo.label,
+          delivery_fee:     feeStr,
           delivery_address: address,
           order_items:      itemsList,
-          order_total:      `₦${total.toLocaleString()}`,
+          items_subtotal:   `₦${subtotal.toLocaleString()}`,
+          order_total:      fee === null ? `₦${subtotal.toLocaleString()} + delivery TBA` : `₦${grand.toLocaleString()}`,
           order_date:       new Date().toLocaleString('en-NG')
         })
       });
@@ -341,11 +386,14 @@
     btn.textContent = 'PLACE ORDER →';
 
     // Record order NOW so admin sees it before payment
-    pendingOrderTrackId = recordOrder(pendingCustomer, null, 'Awaiting Payment');
+    pendingOrderTrackId = recordOrder(pendingCustomer, null, 'Awaiting Payment', grand);
 
     // Show payment options view
-    document.getElementById('payAmt').textContent  = total.toLocaleString();
-    document.getElementById('opayAmt').textContent = total.toLocaleString();
+    const payDisplay = fee === null
+      ? `${subtotal.toLocaleString()} <small style="font-size:.75em;color:#6b7280">(+ delivery TBA)</small>`
+      : grand.toLocaleString();
+    document.getElementById('payAmt').innerHTML  = payDisplay;
+    document.getElementById('opayAmt').innerHTML = payDisplay;
     document.getElementById('coTitle').textContent = 'PAYMENT';
     document.getElementById('coFormView').style.display = 'none';
     document.getElementById('coPayView').style.display  = 'flex';
@@ -356,7 +404,7 @@
     const handler = PaystackPop.setup({
       key:      PAYSTACK_KEY,
       email:    pendingCustomer.email,
-      amount:   cartTotal() * 100,
+      amount:   pendingCustomer.grandTotal * 100,
       currency: 'NGN',
       ref:      'DPT_' + Date.now(),
       metadata: {
@@ -411,7 +459,7 @@
   }
 
   // ── Record order to localStorage ─────────────────────────────
-  function recordOrder(customer, ref, status) {
+  function recordOrder(customer, ref, status, total) {
     const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
     const trackingId = generateTrackingId();
     orders.unshift({
@@ -420,7 +468,7 @@
       date:       new Date().toISOString(),
       customer,
       items:      JSON.parse(JSON.stringify(cart)),
-      total:      cartTotal(),
+      total:      total !== undefined ? total : cartTotal(),
       status:     status || 'Awaiting Payment',
       ref
     });
